@@ -1,0 +1,13 @@
+﻿div.Loading
+{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: #ffa;
+    background-position: center center;
+    background-image: url(../images/progress.gif);
+    background-repeat: no-repeat;
+}
+
