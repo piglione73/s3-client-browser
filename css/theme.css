@@ -11,3 +11,48 @@
     background-repeat: no-repeat;
 }
 
+.Popup .Contents
+{
+    background-color: #fff;
+    border-right: #3300cc 1px solid;
+    border-top: #3300cc 1px solid;
+    border-left: #3300cc 1px solid;
+    border-bottom: #3300cc 1px solid;
+}
+
+.Popup .Title
+{
+    background-color: #3869ff;
+    cursor: move;
+    padding: 1mm;
+}
+.Popup .Title H1
+{
+    border-style: none;
+    margin: 1px 0px 1px 0px;
+    padding: 0px 5mm 0px 0px;
+    background-color: transparent;
+    text-align: left;
+    font-weight: bold;
+    text-transform: none;
+    color: #ffffff;
+    font-style: normal;
+    font-variant: small-caps;
+    text-decoration: none;
+    font-size: 1.25em;
+}
+.Popup .Body
+{
+    padding: 1mm;
+}
+.Popup .Title .ImageButton
+{
+    float: right;
+    cursor: pointer;
+}
+
+.DimScreen
+{
+    background-image: url('../images/DimScreen.png');
+}
+
