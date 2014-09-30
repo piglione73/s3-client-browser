@@ -4,13 +4,15 @@
 var SCB = (function () {
 
     var connectionParameters = {};
-
+    var bucketObjects = null;
 
     function init(w) {
         //Hide loading screen
         $(".Loading").fadeOut();
 
-        getConnectionParameters(function () { alert("Ciao " + connectionParameters.bucketName); });
+        getConnectionParameters(function () {
+            listBucket();
+        });
     }
 
     function call(callback) {
@@ -91,16 +93,42 @@ var SCB = (function () {
         }
     }
 
-    function listBucket() {
+    function awsEnsureConfig() {
         AWS.config = new AWS.Config({
             accessKeyId: connectionParameters.accessKeyId, secretAccessKey: connectionParameters.secretAccessKey, region: connectionParameters.region
         });
+    }
 
-        var bucket = new AWS.S3({ params: { Bucket: connectionParameters.bucketName} });
-        bucket.listObjects(function (err, data) {
-            if (err)
-                jpvs.alert("Error", err.toString());
-        });
+    function listBucket(callback) {
+        awsEnsureConfig();
+
+        bucketObjects = [];
+
+        var s3 = new AWS.S3();
+        list();
+
+        function list(marker) {
+            s3.listObjects({ Bucket: connectionParameters.bucketName, Marker: marker }, function (err, data) {
+                if (err)
+                    jpvs.alert("Error", err.toString());
+                else
+                    onDataReceived(data);
+            });
+        }
+
+        function onDataReceived(data) {
+            for (var i in data.Contents) {
+                var item = data.Contents[i];
+                bucketObjects.push(item);
+            }
+
+            if (data.IsTruncated) {
+                //Repeat request until we received all keys
+                list(bucketObjects[bucketObjects.length - 1].Key);
+            }
+            else
+                call(callback);
+        }
     }
 
     //Exports
