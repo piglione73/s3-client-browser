@@ -26,7 +26,8 @@ var SCB = (function () {
             connectionParameters = {
                 bucketName: arr[0] || "",
                 accessKeyId: arr[1] || "",
-                secretAccessKey: arr[2] || ""
+                secretAccessKey: arr[2] || "",
+                region: arr[3] || ""
             };
         }
         catch (e) {
@@ -35,7 +36,7 @@ var SCB = (function () {
     }
 
     function saveParamsIntoStorage() {
-        var arr = [connectionParameters.bucketName, connectionParameters.accessKeyId, connectionParameters.secretAccessKey];
+        var arr = [connectionParameters.bucketName, connectionParameters.accessKeyId, connectionParameters.secretAccessKey, connectionParameters.region];
         try {
             localStorage["ConnectionParameters"] = arr.join("|");
         }
@@ -46,7 +47,7 @@ var SCB = (function () {
     function getConnectionParameters(callback) {
         //Get connection parameters from localStorage. If not present, then ask the user
         loadParamsFromStorage();
-        if (!connectionParameters.bucketName || !connectionParameters.accessKeyId || !connectionParameters.secretAccessKey)
+        if (!connectionParameters.bucketName || !connectionParameters.accessKeyId || !connectionParameters.secretAccessKey || !connectionParameters.region)
             askConnectionParameters(callback);
         else
             call(callback);
@@ -66,6 +67,11 @@ var SCB = (function () {
 
         jpvs.writeln(pop, "Secret access key:");
         var txtSecret = jpvs.TextBox.create(pop).width("30em").change(onChange).text(connectionParameters.secretAccessKey || "");
+        jpvs.writeln(pop);
+        jpvs.writeln(pop);
+
+        jpvs.writeln(pop, "Region:");
+        var txtRegion = jpvs.TextBox.create(pop).width("7em").change(onChange).text(connectionParameters.region || "");
 
         var buttons = [{ text: "Test connection", click: onTest}];
         jpvs.writeButtonBar(pop, buttons);
@@ -75,6 +81,7 @@ var SCB = (function () {
             connectionParameters.bucketName = $.trim(txtBucket.text());
             connectionParameters.accessKeyId = $.trim(txtAKID.text());
             connectionParameters.secretAccessKey = $.trim(txtSecret.text());
+            connectionParameters.region = $.trim(txtRegion.text());
 
             saveParamsIntoStorage();
         }
@@ -86,7 +93,7 @@ var SCB = (function () {
 
     function listBucket() {
         AWS.config = new AWS.Config({
-            accessKeyId: connectionParameters.accessKeyId, secretAccessKey: connectionParameters.secretAccessKey
+            accessKeyId: connectionParameters.accessKeyId, secretAccessKey: connectionParameters.secretAccessKey, region: connectionParameters.region
         });
 
         var bucket = new AWS.S3({ params: { Bucket: connectionParameters.bucketName} });
