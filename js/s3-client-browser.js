@@ -11,7 +11,9 @@ var SCB = (function () {
         $(".Loading").fadeOut();
 
         getConnectionParameters(function () {
-            listBucket();
+            listBucket(function () {
+                alert("Objects: " + bucketObjects.length);
+            });
         });
     }
 
@@ -89,7 +91,11 @@ var SCB = (function () {
         }
 
         function onTest() {
-            listBucket();
+            listBucket(function () {
+                alert("Objects: " + bucketObjects.length);
+                for (var i in bucketObjects)
+                    jpvs.writeln("body", bucketObjects[i].Key);
+            });
         }
     }
 
