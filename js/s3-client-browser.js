@@ -4,22 +4,29 @@
 var SCB = (function () {
 
     var connectionParameters = {};
-    var bucketObjects = null;
 
     function init(w) {
         //Hide loading screen
         $(".Loading").fadeOut();
 
-        getConnectionParameters(function () {
-            listBucket(function () {
-                alert("Objects: " + bucketObjects.length);
-            });
-        });
+        step1();
+
+        function step1() {
+            getConnectionParameters(step2);
+        }
+
+        function step2() {
+            listBucket("", step3);
+        }
+
+        function step3(dirs, files) {
+            alert("Dirs: " + dirs.length + ", files: " + files.length);
+        }
     }
 
-    function call(callback) {
+    function call(callback, params) {
         if (callback)
-            callback();
+            callback.apply(null, params);
     }
 
     function loadParamsFromStorage() {
@@ -91,10 +98,13 @@ var SCB = (function () {
         }
 
         function onTest() {
-            listBucket(function () {
-                alert("Objects: " + bucketObjects.length);
-                for (var i in bucketObjects)
-                    jpvs.writeln("body", bucketObjects[i].Key);
+            listBucket("", function (dirs, files) {
+                jpvs.alert("Test connection", "Dirs: " + dirs.length + ", files: " + files.length);
+
+                for (var i in dirs)
+                    jpvs.writeln("body", dirs[i]);
+                for (var i in files)
+                    jpvs.writeln("body", files[i].Key);
             });
         }
     }
@@ -105,16 +115,23 @@ var SCB = (function () {
         });
     }
 
-    function listBucket(callback) {
+    function listBucket(directory, callback) {
         awsEnsureConfig();
 
-        bucketObjects = [];
+        var directories = [], files = [];
 
         var s3 = new AWS.S3();
         list();
 
         function list(marker) {
-            s3.listObjects({ Bucket: connectionParameters.bucketName, Marker: marker }, function (err, data) {
+            var params = {
+                Bucket: connectionParameters.bucketName,
+                Prefix: directory,
+                Delimiter: "/",
+                Marker: marker
+            };
+
+            s3.listObjects(params, function (err, data) {
                 if (err)
                     jpvs.alert("Error", err.toString());
                 else
@@ -123,17 +140,24 @@ var SCB = (function () {
         }
 
         function onDataReceived(data) {
+            for (var i in data.CommonPrefixes) {
+                var item = data.CommonPrefixes[i].Prefix;
+                directories.push(item);
+            }
+
             for (var i in data.Contents) {
                 var item = data.Contents[i];
-                bucketObjects.push(item);
+                files.push(item);
             }
 
             if (data.IsTruncated) {
                 //Repeat request until we received all keys
-                list(bucketObjects[bucketObjects.length - 1].Key);
+                list(data.NextMarker);
             }
-            else
-                call(callback);
+            else {
+                //Done
+                call(callback, [directories, files]);
+            }
         }
     }
 
