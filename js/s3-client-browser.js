@@ -6,9 +6,6 @@ var SCB = (function () {
     var connectionParameters = {};
 
     function init(w) {
-        //Hide loading screen
-        $(".Loading").fadeOut();
-
         step1();
 
         function step1() {
@@ -19,8 +16,11 @@ var SCB = (function () {
             listBucket("", step3);
         }
 
-        function step3(dirs, files) {
-            alert("Dirs: " + dirs.length + ", files: " + files.length);
+        function step3(parent, dirs, files) {
+            //Hide loading screen
+            $(".Loading").fadeOut();
+
+            showFolderContent(parent, dirs, files);
         }
     }
 
@@ -98,7 +98,7 @@ var SCB = (function () {
         }
 
         function onTest() {
-            listBucket("", function (dirs, files) {
+            listBucket("", function (parent, dirs, files) {
                 jpvs.alert("Test connection", "Dirs: " + dirs.length + ", files: " + files.length);
 
                 for (var i in dirs)
@@ -156,9 +156,35 @@ var SCB = (function () {
             }
             else {
                 //Done
-                call(callback, [directories, files]);
+                call(callback, [directory, directories, files]);
             }
         }
+    }
+
+    function showFolderContent(parent, directories, files) {
+        var container = $("#objects").empty();
+
+        jpvs.LinkButton.create(container).text("Parent directory").click(onClickDirectory(parent));
+        jpvs.writeln(container);
+        jpvs.writeln(container);
+
+        for (var i in directories) {
+            var dir = directories[i];
+            jpvs.LinkButton.create(container).text(dir).click(onClickDirectory(dir));
+            jpvs.writeln(container);
+        }
+
+        for (var i in files) {
+            var file = files[i];
+            jpvs.writeTag(container, "img").attr("src", file.Key).css("width", "100%");
+            jpvs.writeln(container);
+        }
+    }
+
+    function onClickDirectory(dir) {
+        return function () {
+            listBucket(dir, showFolderContent);
+        };
     }
 
     //Exports
