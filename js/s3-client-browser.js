@@ -6,6 +6,9 @@ var SCB = (function () {
     var connectionParameters = {};
 
     function init(w) {
+        //Hide loading screen
+        $(".Loading").fadeOut();
+
         step1();
 
         function step1() {
@@ -16,11 +19,8 @@ var SCB = (function () {
             listBucket("", step3);
         }
 
-        function step3(parent, dirs, files) {
-            //Hide loading screen
-            $(".Loading").fadeOut();
-
-            showFolderContent(parent, dirs, files);
+        function step3(directory, dirs, files) {
+            showFolderContent(directory, dirs, files);
         }
     }
 
@@ -98,7 +98,7 @@ var SCB = (function () {
         }
 
         function onTest() {
-            listBucket("", function (parent, dirs, files) {
+            listBucket("", function (directory, dirs, files) {
                 jpvs.alert("Test connection", "Dirs: " + dirs.length + ", files: " + files.length);
 
                 for (var i in dirs)
@@ -161,9 +161,21 @@ var SCB = (function () {
         }
     }
 
-    function showFolderContent(parent, directories, files) {
+    function getParent(directory) {
+        var parts = directory.split("/");
+        if (parts.length >= 2) {
+            //Remove all but last
+            parts.splice(parts.length - 2, 1);
+        }
+
+        var parent = parts.join("/");
+        return parent;
+    }
+
+    function showFolderContent(directory, directories, files) {
         var container = $("#objects").empty();
 
+        var parent = getParent(directory);
         jpvs.LinkButton.create(container).text("Parent directory").click(onClickDirectory(parent));
         jpvs.writeln(container);
         jpvs.writeln(container);
@@ -176,6 +188,11 @@ var SCB = (function () {
 
         for (var i in files) {
             var file = files[i];
+
+            //Skip if ends with slash (it's a directory and we already have it in "directories"
+            if (file.Key.substring(file.Key.length - 1) == "/")
+                continue;
+
             jpvs.writeTag(container, "img").attr("src", file.Key).css("width", "100%");
             jpvs.writeln(container);
         }
