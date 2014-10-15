@@ -4,8 +4,11 @@
 var SCB = (function () {
 
     var connectionParameters = {};
-
-    function init(w) {
+    var w;
+    
+    function init(widgets) {
+        w = widgets;
+        
         //Hide loading screen
         $(".Loading").fadeOut();
 
@@ -180,10 +183,10 @@ var SCB = (function () {
         jpvs.writeln(container);
         jpvs.writeln(container);
 
+        var keys = [];
         for (var i in directories) {
             var dir = directories[i];
-            jpvs.LinkButton.create(container).text(dir).click(onClickDirectory(dir));
-            jpvs.writeln(container);
+            keys.push(dir);
         }
 
         for (var i in files) {
@@ -193,9 +196,13 @@ var SCB = (function () {
             if (file.Key.substring(file.Key.length - 1) == "/")
                 continue;
 
-            jpvs.writeTag(container, "img").attr("src", file.Key).css("width", "100%");
-            jpvs.writeln(container);
+            keys.push(file.Key);
         }
+        
+        var firstTile = Tile.wrap(keys);
+        w.filebrowser.originX(w.filebrowser.tileSpacingHorz() + w.filebrowser.tileWidth()/2);
+        w.filebrowser.originY(w.filebrowser.tileSpacingVert() + w.filebrowser.tileHeight()/2);
+        w.filebrowser.startingTile(firstTile);
     }
 
     function onClickDirectory(dir) {
@@ -204,6 +211,44 @@ var SCB = (function () {
         };
     }
 
+    function Tile(key) {
+        this.key = key;
+        this.prev = null;
+        this.next = null;
+    }
+    
+    Tile.wrap = function(keys) {
+        var tiles = [];
+        for(var i in keys)
+            tiles.push(new Tile(keys[i]));
+            
+        //Make linked list
+        for(var i = 0; i < tiles.length; i++) {
+            var tile = tiles[i];
+            tile.prev = (i >= 1? tiles[i-1] : null);
+            tile.next = (i < tiles.length - 1? tiles[i+1] : null);
+        }
+        
+        return tiles[0] || null;
+    };
+    
+    Tile.prototype.getNextTile = function() {
+        return this.next;
+    };
+    
+    Tile.prototype.getPreviousTile = function() {
+        return this.prev;
+    };
+    
+    Tile.prototype.template = function(dataItem) {
+        var key = dataItem.tileObject.key;
+        if (key.substring(key.length - 1) == "/")
+            this.click(onClickDirectory(key));
+
+        jpvs.writeln(this, key);
+        jpvs.writeTag(this, "img").attr("src", key).css("width", "100%");
+    };
+    
     //Exports
     return {
         init: init,
@@ -234,3 +279,4 @@ document.getElementById('objects').innerHTML +=
 }
 });
 */
+

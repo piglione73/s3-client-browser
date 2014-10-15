@@ -56,3 +56,17 @@
     background-image: url('../images/DimScreen.png');
 }
 
+.TileBrowser
+{
+    border: 1px solid #ccc;
+    position: absolute;
+    left: 5pt;
+    right: 5pt;
+    height: 80%;
+}
+
+.Tile
+{
+    border: 1px solid #777;
+}
+
