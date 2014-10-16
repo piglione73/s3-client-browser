@@ -58,7 +58,7 @@
 
 .TileBrowser
 {
-    border: 1px solid #ccc;
+    border: 1pt solid #ccc;
     position: absolute;
     left: 5pt;
     right: 5pt;
@@ -70,3 +70,7 @@
     border: 1px solid #777;
 }
 
+.TileBrowser .Up, .TileBrowser .Down, .TileBrowser .Plus, .TileBrowser .Minus
+{
+    opacity: 0.5;
+}

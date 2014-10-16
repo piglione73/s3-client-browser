@@ -1415,6 +1415,13 @@ jpvs.makeWidget({
     type: "TileBrowser",
 
     prototype: {
+        refresh: function (flagAnimate) {
+            ///<summary>Force a refresh of the tile browser. Useful after setting some properties and a redraw is needed.
+            ///Note that after setting a property such as originX or tileHeight, the tile browser is not automatically refreshed. This allows
+            ///unnecessary redraws to be avoided when, for example, multiple properties are to be set in sequence.</summary>
+            /// <param name="flagAnimate" type="Boolean">If true, an animation is started, otherwise a simple redraw is done.</param>
+        },
+
         startingTile: function (value) {
             ///<summary>Property: starting tile object, from which tile layout and rendering will begin. Tile objects will be rendered into
             ///fixed sized tiles. A tile object must define at least three members: "template", "getNextTile", "getPreviousTile".

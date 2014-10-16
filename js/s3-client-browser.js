@@ -5,10 +5,10 @@ var SCB = (function () {
 
     var connectionParameters = {};
     var w;
-    
+
     function init(widgets) {
         w = widgets;
-        
+
         //Hide loading screen
         $(".Loading").fadeOut();
 
@@ -198,11 +198,15 @@ var SCB = (function () {
 
             keys.push(file.Key);
         }
-        
+
         var firstTile = Tile.wrap(keys);
-        w.filebrowser.originX(w.filebrowser.tileSpacingHorz() + w.filebrowser.tileWidth()/2);
-        w.filebrowser.originY(w.filebrowser.tileSpacingVert() + w.filebrowser.tileHeight()/2);
-        w.filebrowser.startingTile(firstTile);
+
+        //Show the first tile on the top left corner of the tile browser
+        w.filebrowser.originX(w.filebrowser.tileSpacingHorz() + w.filebrowser.tileWidth() / 2);
+        w.filebrowser.originY(w.filebrowser.tileSpacingVert() + w.filebrowser.tileHeight() / 2);
+        w.filebrowser.desiredOriginX(w.filebrowser.originX());
+        w.filebrowser.desiredOriginY(w.filebrowser.originY());
+        w.filebrowser.startingTile(firstTile).refresh(true);
     }
 
     function onClickDirectory(dir) {
@@ -216,31 +220,31 @@ var SCB = (function () {
         this.prev = null;
         this.next = null;
     }
-    
-    Tile.wrap = function(keys) {
+
+    Tile.wrap = function (keys) {
         var tiles = [];
-        for(var i in keys)
+        for (var i in keys)
             tiles.push(new Tile(keys[i]));
-            
+
         //Make linked list
-        for(var i = 0; i < tiles.length; i++) {
+        for (var i = 0; i < tiles.length; i++) {
             var tile = tiles[i];
-            tile.prev = (i >= 1? tiles[i-1] : null);
-            tile.next = (i < tiles.length - 1? tiles[i+1] : null);
+            tile.prev = (i >= 1 ? tiles[i - 1] : null);
+            tile.next = (i < tiles.length - 1 ? tiles[i + 1] : null);
         }
-        
+
         return tiles[0] || null;
     };
-    
-    Tile.prototype.getNextTile = function() {
+
+    Tile.prototype.getNextTile = function () {
         return this.next;
     };
-    
-    Tile.prototype.getPreviousTile = function() {
+
+    Tile.prototype.getPreviousTile = function () {
         return this.prev;
     };
-    
-    Tile.prototype.template = function(dataItem) {
+
+    Tile.prototype.template = function (dataItem) {
         var key = dataItem.tileObject.key;
         if (key.substring(key.length - 1) == "/")
             this.click(onClickDirectory(key));
@@ -248,7 +252,7 @@ var SCB = (function () {
         jpvs.writeln(this, key);
         jpvs.writeTag(this, "img").attr("src", key).css("width", "100%");
     };
-    
+
     //Exports
     return {
         init: init,
