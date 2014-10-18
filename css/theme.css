@@ -11,6 +11,19 @@
     background-repeat: no-repeat;
 }
 
+.Progress
+{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: rgba(255,255,160,0.5);
+    background-position: center center;
+    background-image: url(../images/progress.gif);
+    background-repeat: no-repeat;
+}
+
 .Popup .Contents
 {
     background-color: #fff;

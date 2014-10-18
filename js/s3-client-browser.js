@@ -5,31 +5,22 @@ var SCB = (function () {
 
     var connectionParameters = {};
     var w;
+    var currentDirectory = "";
 
     function init(widgets) {
         w = widgets;
 
-        //Hide loading screen
-        $(".Loading").fadeOut();
-
-        step1();
-
-        function step1() {
-            getConnectionParameters(step2);
-        }
-
-        function step2() {
-            listBucket("", step3);
-        }
-
-        function step3(directory, dirs, files) {
+        //Load configuration
+        loadParamsFromStorage();
+        
+        //List root directory
+        listBucket(currentDirectory, function(directory, dirs, files) {
+            //Hide loading screen
+            $(".Loading").fadeOut();
+            
+            //Show results
             showFolderContent(directory, dirs, files);
-        }
-    }
-
-    function call(callback, params) {
-        if (callback)
-            callback.apply(null, params);
+        });
     }
 
     function loadParamsFromStorage() {
@@ -58,17 +49,21 @@ var SCB = (function () {
         }
     }
 
-    function getConnectionParameters(callback) {
-        //Get connection parameters from localStorage. If not present, then ask the user
-        loadParamsFromStorage();
-        if (!connectionParameters.bucketName || !connectionParameters.accessKeyId || !connectionParameters.secretAccessKey || !connectionParameters.region)
-            askConnectionParameters(callback);
-        else
-            call(callback);
+    function progress(callback) {
+        jpvs.showDimScreen(0, 100, template);
+                
+        return function() {
+            jpvs.hideDimScreen();
+            callback.apply(null, arguments);
+        };
+        
+        function template() {
+            this.removeClass("DimScreen").addClass("Progress");
+        }
     }
-
-    function askConnectionParameters(callback) {
-        var pop = jpvs.Popup.create().title("Connection parameters").close(function () { call(callback); });
+    
+    function configure() {
+        var pop = jpvs.Popup.create().title("Connection parameters");
         jpvs.writeln(pop, "Bucket name:");
         var txtBucket = jpvs.TextBox.create(pop).width("15em").change(onChange).text(connectionParameters.bucketName || "");
         jpvs.writeln(pop);
@@ -101,14 +96,7 @@ var SCB = (function () {
         }
 
         function onTest() {
-            listBucket("", function (directory, dirs, files) {
-                jpvs.alert("Test connection", "Dirs: " + dirs.length + ", files: " + files.length);
-
-                for (var i in dirs)
-                    jpvs.writeln("body", dirs[i]);
-                for (var i in files)
-                    jpvs.writeln("body", files[i].Key);
-            });
+            listBucket("", progress(showFolderContent));
         }
     }
 
@@ -135,8 +123,12 @@ var SCB = (function () {
             };
 
             s3.listObjects(params, function (err, data) {
-                if (err)
+                if (err){
                     jpvs.alert("Error", err.toString());
+
+                    //Done
+                    callback(directory, [], []);
+                }
                 else
                     onDataReceived(data);
             });
@@ -159,7 +151,7 @@ var SCB = (function () {
             }
             else {
                 //Done
-                call(callback, [directory, directories, files]);
+                callback(directory, directories, files);
             }
         }
     }
@@ -176,30 +168,25 @@ var SCB = (function () {
     }
 
     function showFolderContent(directory, directories, files) {
-        var container = $("#objects").empty();
+        currentDirectory = directory;
 
-        var parent = getParent(directory);
-        jpvs.LinkButton.create(container).text("Parent directory").click(onClickDirectory(parent));
-        jpvs.writeln(container);
-        jpvs.writeln(container);
-
-        var keys = [];
+        var entries = [];
         for (var i in directories) {
             var dir = directories[i];
-            keys.push(dir);
+            entries.push({type:"D",key:dir});
         }
 
         for (var i in files) {
             var file = files[i];
 
-            //Skip if ends with slash (it's a directory and we already have it in "directories"
+            //Skip if ends with slash (it's a directory and we already have it in "directories")
             if (file.Key.substring(file.Key.length - 1) == "/")
                 continue;
 
-            keys.push(file.Key);
+            entries.push({type:"F",key:file.Key});
         }
 
-        var firstTile = Tile.wrap(keys);
+        var firstTile = Tile.wrap(entries);
 
         //Show the first tile on the top left corner of the tile browser
         w.filebrowser.originX(w.filebrowser.tileSpacingHorz() + w.filebrowser.tileWidth() / 2);
@@ -209,22 +196,27 @@ var SCB = (function () {
         w.filebrowser.startingTile(firstTile).refresh(true);
     }
 
+    function goToParent() {
+        listBucket(getParent(currentDirectory), progress(showFolderContent));
+    }
+    
     function onClickDirectory(dir) {
         return function () {
-            listBucket(dir, showFolderContent);
+            listBucket(dir, progress(showFolderContent));
         };
     }
 
-    function Tile(key) {
-        this.key = key;
+    function Tile(entry) {
+        this.type=entry.type;
+        this.key = entry.key;
         this.prev = null;
         this.next = null;
     }
 
-    Tile.wrap = function (keys) {
+    Tile.wrap = function (entries) {
         var tiles = [];
-        for (var i in keys)
-            tiles.push(new Tile(keys[i]));
+        for (var i in entries)
+            tiles.push(new Tile(entries[i]));
 
         //Make linked list
         for (var i = 0; i < tiles.length; i++) {
@@ -245,42 +237,19 @@ var SCB = (function () {
     };
 
     Tile.prototype.template = function (dataItem) {
-        var key = dataItem.tileObject.key;
-        if (key.substring(key.length - 1) == "/")
-            this.click(onClickDirectory(key));
-
-        jpvs.writeln(this, key);
-        jpvs.writeTag(this, "img").attr("src", key).css("width", "100%");
+        if (dataItem.tileObject.type == "D"){
+            this.click(onClickDirectory(dataItem.tileObject.key));
+            jpvs.writeln(this, dataItem.tileObject.key);
+        }
+        else
+            jpvs.writeTag(this, "img").attr("src", dataItem.tileObject.key).css("width", "100%");
     };
 
     //Exports
     return {
         init: init,
-        askConnectionParameters: askConnectionParameters
+        configure: configure,
+        goToParent: goToParent
     };
 })();
-
-
-/*
-// See the Configuring section to configure credentials in the SDK
-AWS.config = new AWS.Config({
-accessKeyId: 'AKID', secretAccessKey: 'SECRET', region: 'eu-west-1'
-});
-
-var bucket = new AWS.S3({ params: { Bucket: 'BUCKET'} });
-//bucket.makeUnauthenticatedRequest('listObjects', {Bucket: 'BUCKET'}, function (err, data) {
-bucket.listObjects(function (err, data) {
-if (err) {
-document.getElementById('status').innerHTML =
-'Could not load objects from S3: ' + err;
-} else {
-document.getElementById('status').innerHTML =
-'Loaded ' + data.Contents.length + ' items from S3';
-for (var i = 0; i < data.Contents.length; i++) {
-document.getElementById('objects').innerHTML +=
-'<li>' + data.Contents[i].Key + '</li>';
-}
-}
-});
-*/
 
