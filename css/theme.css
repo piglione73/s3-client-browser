@@ -87,3 +87,10 @@
 {
     opacity: 0.5;
 }
+
+.Directory
+{
+    background-position: center center;
+    background-image: url('../images/folder.png');
+    background-repeat: no-repeat;
+}

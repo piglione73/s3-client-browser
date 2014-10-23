@@ -12,12 +12,12 @@ var SCB = (function () {
 
         //Load configuration
         loadParamsFromStorage();
-        
+
         //List root directory
-        listBucket(currentDirectory, function(directory, dirs, files) {
+        listBucket(currentDirectory, function (directory, dirs, files) {
             //Hide loading screen
             $(".Loading").fadeOut();
-            
+
             //Show results
             showFolderContent(directory, dirs, files);
         });
@@ -51,17 +51,17 @@ var SCB = (function () {
 
     function progress(callback) {
         jpvs.showDimScreen(0, 100, template);
-                
-        return function() {
+
+        return function () {
             jpvs.hideDimScreen();
             callback.apply(null, arguments);
         };
-        
+
         function template() {
             this.removeClass("DimScreen").addClass("Progress");
         }
     }
-    
+
     function configure() {
         var pop = jpvs.Popup.create().title("Connection parameters");
         jpvs.writeln(pop, "Bucket name:");
@@ -123,7 +123,7 @@ var SCB = (function () {
             };
 
             s3.listObjects(params, function (err, data) {
-                if (err){
+                if (err) {
                     jpvs.alert("Error", err.toString());
 
                     //Done
@@ -173,7 +173,7 @@ var SCB = (function () {
         var entries = [];
         for (var i in directories) {
             var dir = directories[i];
-            entries.push({type:"D",key:dir});
+            entries.push({ type: "D", key: dir });
         }
 
         for (var i in files) {
@@ -183,7 +183,7 @@ var SCB = (function () {
             if (file.Key.substring(file.Key.length - 1) == "/")
                 continue;
 
-            entries.push({type:"F",key:file.Key});
+            entries.push({ type: "F", key: file.Key });
         }
 
         var firstTile = Tile.wrap(entries);
@@ -199,7 +199,7 @@ var SCB = (function () {
     function goToParent() {
         listBucket(getParent(currentDirectory), progress(showFolderContent));
     }
-    
+
     function onClickDirectory(dir) {
         return function () {
             listBucket(dir, progress(showFolderContent));
@@ -207,7 +207,7 @@ var SCB = (function () {
     }
 
     function Tile(entry) {
-        this.type=entry.type;
+        this.type = entry.type;
         this.key = entry.key;
         this.prev = null;
         this.next = null;
@@ -237,9 +237,10 @@ var SCB = (function () {
     };
 
     Tile.prototype.template = function (dataItem) {
-        if (dataItem.tileObject.type == "D"){
+        if (dataItem.tileObject.type == "D") {
             this.click(onClickDirectory(dataItem.tileObject.key));
             jpvs.writeln(this, dataItem.tileObject.key);
+            this.addClass("Directory");
         }
         else
             jpvs.writeTag(this, "img").attr("src", dataItem.tileObject.key).css("width", "100%");
