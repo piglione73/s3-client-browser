@@ -5,7 +5,7 @@ var SCB = (function () {
 
     var connectionParameters = {};
     var w;
-    var currentDirectory = "";
+    var currentDirectory;
 
     function init(widgets) {
         w = widgets;
@@ -14,6 +14,7 @@ var SCB = (function () {
         loadParamsFromStorage();
 
         //List root directory
+        currentDirectory = connectionParameters.root;
         listBucket(currentDirectory, function (directory, dirs, files) {
             //Hide loading screen
             $(".Loading").fadeOut();
@@ -32,7 +33,8 @@ var SCB = (function () {
                 bucketName: arr[0] || "",
                 accessKeyId: arr[1] || "",
                 secretAccessKey: arr[2] || "",
-                region: arr[3] || ""
+                region: arr[3] || "",
+                root: arr[4] || ""
             };
         }
         catch (e) {
@@ -41,7 +43,7 @@ var SCB = (function () {
     }
 
     function saveParamsIntoStorage() {
-        var arr = [connectionParameters.bucketName, connectionParameters.accessKeyId, connectionParameters.secretAccessKey, connectionParameters.region];
+        var arr = [connectionParameters.bucketName, connectionParameters.accessKeyId, connectionParameters.secretAccessKey, connectionParameters.region, connectionParameters.root];
         try {
             localStorage["ConnectionParameters"] = arr.join("|");
         }
@@ -69,6 +71,11 @@ var SCB = (function () {
         jpvs.writeln(pop);
         jpvs.writeln(pop);
 
+        jpvs.writeln(pop, "Root directory:");
+        var txtRoot = jpvs.TextBox.create(pop).width("15em").change(onChange).text(connectionParameters.root || "");
+        jpvs.writeln(pop);
+        jpvs.writeln(pop);
+
         jpvs.writeln(pop, "Access key ID:");
         var txtAKID = jpvs.TextBox.create(pop).width("15em").change(onChange).text(connectionParameters.accessKeyId || "");
         jpvs.writeln(pop);
@@ -91,12 +98,13 @@ var SCB = (function () {
             connectionParameters.accessKeyId = $.trim(txtAKID.text());
             connectionParameters.secretAccessKey = $.trim(txtSecret.text());
             connectionParameters.region = $.trim(txtRegion.text());
-
+            connectionParameters.root = $.trim(txtRoot.text());
+            
             saveParamsIntoStorage();
         }
 
         function onTest() {
-            listBucket("", progress(showFolderContent));
+            listBucket(connectionParameters.root, progress(showFolderContent));
         }
     }
 
@@ -109,6 +117,9 @@ var SCB = (function () {
     function listBucket(directory, callback) {
         awsEnsureConfig();
 
+        if(directory != "" && !endsWith(directory, "/"))
+            directory=directory+"/";
+            
         var directories = [], files = [];
 
         var s3 = new AWS.S3();
@@ -164,6 +175,9 @@ var SCB = (function () {
         }
 
         var parent = parts.join("/");
+        if(parent.length<connectionParameters.root.length)
+            parent=connectionParameters.root;
+            
         return parent;
     }
 
@@ -242,10 +256,57 @@ var SCB = (function () {
             jpvs.writeln(this, dataItem.tileObject.key);
             this.addClass("Directory");
         }
-        else
-            jpvs.writeTag(this, "img").attr("src", dataItem.tileObject.key).css("width", "100%");
+        else {
+            //Look for a template for the current file extension
+            for(var type in templates) {
+                if(endsWith(dataItem.tileObject.key, type)){
+                    //Found
+                    var template = templates[type];
+                    template.call(this, dataItem);
+                    return;
+                }
+            }
+
+            //Not found: just write the file name
+            jpvs.write(this, dataItem.tileObject.key);
+        }
     };
 
+    function endsWith(str, suffix) {
+        var suffix2 = str.substring(str.length-suffix.length);
+        return suffix.toLowerCase()==suffix2.toLowerCase();
+    }
+    
+    var templates = (function() {
+        function image(dataItem) {
+            return jpvs.writeTag(this, "img").attr("src", dataItem.tileObject.key).css("width", "100%");
+        }
+        
+        function html(dataItem) {
+            return jpvs.writeTag(this, "a", dataItem.tileObject.key).attr({
+                href: dataItem.tileObject.key,
+                target: dataItem.tileObject.key
+            });
+        }
+        
+        function video(dataItem) {
+            var v = jpvs.writeTag(this, "video").css("width", "100%").attr("controls", "true");
+            jpvs.writeTag(v, "source").attr("src", dataItem.tileObject.key);
+            return v;
+        }
+        
+        return {
+            ".gif":image,
+            ".jpg":image,
+            ".jpeg":image,
+            ".png":image,
+            ".htm":html,
+            ".html":html,
+            ".mp4":video,
+            ".mov":video
+        };
+    })();
+    
     //Exports
     return {
         init: init,
