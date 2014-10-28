@@ -1,4 +1,4 @@
-﻿/// <reference path="js/jpvs-all.js" />
+/// <reference path="js/jpvs-all.js" />
 /// <reference path="js/jpvs-doc.js" />
 
 var SCB = (function () {
