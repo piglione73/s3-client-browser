@@ -69,15 +69,6 @@
     background-image: url('../images/DimScreen.png');
 }
 
-.TileBrowser
-{
-    border: 1pt solid #ccc;
-    position: absolute;
-    left: 5pt;
-    right: 5pt;
-    height: 80%;
-}
-
 .Tile
 {
     border: 1px solid #777;
@@ -93,4 +84,55 @@
     background-position: center center;
     background-image: url('../images/folder.png');
     background-repeat: no-repeat;
+}
+
+div.Window 
+{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+}
+
+div.Window .Toolbar
+{
+    position: absolute;
+    top: 0pt;
+    left: 0pt;
+    right: 0pt;
+    height: 26pt;
+    background-color: #DDD;
+    border-bottom: 1pt solid #AAA;
+}
+
+.Toolbar button
+{
+    width: 8em;
+    height: 20pt;
+    background-color: #AAA;
+    border: 1pt solid #000000;
+    text-align: center;
+    padding: 3pt;
+    margin: 3pt;
+    font-size: 10pt;
+}
+
+.Toolbar button:hover
+{
+    background-color: #DDD;
+    border: 1pt solid #000000;
+    text-align: center;
+    padding: 3pt;
+    margin: 3pt;
+    font-size: 10pt;
+}
+
+div.Window .Main
+{
+    position: absolute;
+    top: 26pt;
+    left: 0pt;
+    right: 0pt;
+    bottom: 0pt;
 }

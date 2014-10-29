@@ -8,12 +8,14 @@
 <body onload="jpvs(SCB.init);">
     <div class="Loading"></div>
 
-    <div class="Toolbar">
-        <button type="button" onclick="SCB.configure();">Configure</button>
-        <button type="button" onclick="SCB.goToParent();">Parent directory</button>
-    </div>
+    <div class="Window">
+        <div class="Toolbar">
+            <button type="button" onclick="SCB.goToParent();">Up</button>
+            <button type="button" onclick="SCB.configure();">Configure</button>
+        </div>
 
-    <div id="filebrowser" data-jpvs-type="TileBrowser">
+        <div id="filebrowser" data-jpvs-type="TileBrowser" class="Main">
+        </div>
     </div>
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>

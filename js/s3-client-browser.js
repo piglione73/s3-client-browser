@@ -1,5 +1,5 @@
-/// <reference path="js/jpvs-all.js" />
-/// <reference path="js/jpvs-doc.js" />
+/// <reference path="jpvs-all.js" />
+/// <reference path="jpvs-doc.js" />
 
 var SCB = (function () {
 
@@ -12,6 +12,10 @@ var SCB = (function () {
 
         //Load configuration
         loadParamsFromStorage();
+
+        //Initial tile size
+        w.filebrowser.tileWidth(w.filebrowser.width() / 3);
+        w.filebrowser.tileHeight(null);
 
         //List root directory
         currentDirectory = connectionParameters.root;
@@ -99,7 +103,7 @@ var SCB = (function () {
             connectionParameters.secretAccessKey = $.trim(txtSecret.text());
             connectionParameters.region = $.trim(txtRegion.text());
             connectionParameters.root = $.trim(txtRoot.text());
-            
+
             saveParamsIntoStorage();
         }
 
@@ -117,9 +121,9 @@ var SCB = (function () {
     function listBucket(directory, callback) {
         awsEnsureConfig();
 
-        if(directory != "" && !endsWith(directory, "/"))
-            directory=directory+"/";
-            
+        if (directory != "" && !endsWith(directory, "/"))
+            directory = directory + "/";
+
         var directories = [], files = [];
 
         var s3 = new AWS.S3();
@@ -175,10 +179,24 @@ var SCB = (function () {
         }
 
         var parent = parts.join("/");
-        if(parent.length<connectionParameters.root.length)
-            parent=connectionParameters.root;
-            
+        if (parent.length < connectionParameters.root.length)
+            parent = connectionParameters.root;
+
         return parent;
+    }
+
+    function getName(directory) {
+        var parts = directory.split("/");
+        if (parts.length >= 2) {
+            if (parts[parts.length - 1] != "")
+                return parts[parts.length - 1];
+            else
+                return parts[parts.length - 2];
+        }
+        else if (parts.length == 1)
+            return parts[0];
+        else
+            return "???";
     }
 
     function showFolderContent(directory, directories, files) {
@@ -253,13 +271,13 @@ var SCB = (function () {
     Tile.prototype.template = function (dataItem) {
         if (dataItem.tileObject.type == "D") {
             this.click(onClickDirectory(dataItem.tileObject.key));
-            jpvs.writeln(this, dataItem.tileObject.key);
+            jpvs.writeln(this, getName(dataItem.tileObject.key));
             this.addClass("Directory");
         }
         else {
             //Look for a template for the current file extension
-            for(var type in templates) {
-                if(endsWith(dataItem.tileObject.key, type)){
+            for (var type in templates) {
+                if (endsWith(dataItem.tileObject.key, type)) {
                     //Found
                     var template = templates[type];
                     template.call(this, dataItem);
@@ -273,40 +291,40 @@ var SCB = (function () {
     };
 
     function endsWith(str, suffix) {
-        var suffix2 = str.substring(str.length-suffix.length);
-        return suffix.toLowerCase()==suffix2.toLowerCase();
+        var suffix2 = str.substring(str.length - suffix.length);
+        return suffix.toLowerCase() == suffix2.toLowerCase();
     }
-    
-    var templates = (function() {
+
+    var templates = (function () {
         function image(dataItem) {
             return jpvs.writeTag(this, "img").attr("src", dataItem.tileObject.key).css("width", "100%");
         }
-        
+
         function html(dataItem) {
             return jpvs.writeTag(this, "a", dataItem.tileObject.key).attr({
                 href: dataItem.tileObject.key,
                 target: dataItem.tileObject.key
             });
         }
-        
+
         function video(dataItem) {
             var v = jpvs.writeTag(this, "video").css("width", "100%").attr("controls", "true");
             jpvs.writeTag(v, "source").attr("src", dataItem.tileObject.key);
             return v;
         }
-        
+
         return {
-            ".gif":image,
-            ".jpg":image,
-            ".jpeg":image,
-            ".png":image,
-            ".htm":html,
-            ".html":html,
-            ".mp4":video,
-            ".mov":video
+            ".gif": image,
+            ".jpg": image,
+            ".jpeg": image,
+            ".png": image,
+            ".htm": html,
+            ".html": html,
+            ".mp4": video,
+            ".mov": video
         };
     })();
-    
+
     //Exports
     return {
         init: init,
