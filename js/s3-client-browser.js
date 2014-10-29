@@ -296,9 +296,58 @@ var SCB = (function () {
     }
 
     var templates = (function () {
+
+	var imageCache = {};
+	var imageLoads = [];
+	var imageLoading = false;
+
+	function loadImagesTask() {
+	    if(imageLoading)
+		return;
+
+	    var imageItem = imageLoads.pop();
+	    if(imageItem) {
+		//Ok, there's something that must be loaded
+		var cachedImg = imageCache[imageItem.url];
+		if(cachedImg) {
+		    onImageAvailable(img);
+		    return;
+		}
+
+		var img = new Image();
+		img.src = imageItem.url;
+		imageLoading = true;
+		img.addEventListener("load", function() {
+		    onImageAvailable(img);
+		}, false);
+	    }
+
+	    function onImageAvailable(img) {
+		//The image has been loaded. Let's call the callback
+		imageItem.callback(img);
+		imageLoading = false;
+
+		//Save in cache
+		imageCache[imageItem.Url] = img;
+
+		//Continue loading from the queue, if needed
+		loadImagesTask();
+	    }
+	}
+
         function image(dataItem) {
-            return jpvs.writeTag(this, "img").attr("src", dataItem.tileObject.key).css("width", "100%");
-        }
+	    var tile = this;
+	    jpvs.write(tile, "...");
+	    //jpvs.writeTag(tile, "img").attr("src", jpvs.Resources.images.loading);
+	    imageLoads.push({ url:dataItem.tileObject.key,callback:onImageLoaded});
+	    loadImagesTask();
+
+	    function onImageLoaded(img) {
+		tile.empty();
+		tile.append(img);
+		$(img).css("width", "100%");
+	    }
+	}
 
         function html(dataItem) {
             return jpvs.writeTag(this, "a", dataItem.tileObject.key).attr({
