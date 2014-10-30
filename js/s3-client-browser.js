@@ -243,6 +243,9 @@ var SCB = (function () {
         this.key = entry.key;
         this.prev = null;
         this.next = null;
+
+        this.isImage = false;
+        this.cachedImage = null;
     }
 
     Tile.wrap = function (entries) {
@@ -297,57 +300,56 @@ var SCB = (function () {
 
     var templates = (function () {
 
-	var imageCache = {};
-	var imageLoads = [];
-	var imageLoading = false;
+        var imageLoading = false;
 
-	function loadImagesTask() {
-	    if(imageLoading)
-		return;
+        function loadImagesTask() {
+            if (imageLoading)
+                return;
 
-	    var imageItem = imageLoads.pop();
-	    if(imageItem) {
-		//Ok, there's something that must be loaded
-		var cachedImg = imageCache[imageItem.url];
-		if(cachedImg) {
-		    onImageAvailable(img);
-		    return;
-		}
+            //Load first image that has not been loaded yet
+            w.filebrowser.element.find(".Tile").each(function () {
+                var tile = $(this);
+                var tileObject = tile.data("tileObject");
+                if (tileObject.isImage && !tileObject.cachedImage) {
+                    //This tile contains an image that hasn't been loaded yet
+                    //Let's load it now
+                    var img = new Image();
+                    img.src = tileObject.key;
+                    imageLoading = true;
+                    img.addEventListener("load", function () {
+                        imageLoading = false;
 
-		var img = new Image();
-		img.src = imageItem.url;
-		imageLoading = true;
-		img.addEventListener("load", function() {
-		    onImageAvailable(img);
-		}, false);
-	    }
+                        //At the end, let's update the tile
+                        tileObject.cachedImage = img;
+                        jpvs.applyTemplate(tile, image, { tileObject: tileObject });
 
-	    function onImageAvailable(img) {
-		//The image has been loaded. Let's call the callback
-		imageItem.callback(img);
-		imageLoading = false;
+                        //Then continue loading as needed
+                        loadImagesTask();
+                    }, false);
 
-		//Save in cache
-		imageCache[imageItem.Url] = img;
-
-		//Continue loading from the queue, if needed
-		loadImagesTask();
-	    }
-	}
+                    //Exit from loop
+                    return false;
+                }
+            });
+        }
 
         function image(dataItem) {
-	    var tile = this;
-	    jpvs.write(tile, "...");
-	    //jpvs.writeTag(tile, "img").attr("src", jpvs.Resources.images.loading);
-	    imageLoads.push({ url:dataItem.tileObject.key,callback:onImageLoaded});
-	    loadImagesTask();
+            var tile = this.empty();
 
-	    function onImageLoaded(img) {
-		tile.empty();
-		tile.append(img);
-		$(img).css("width", "100%");
-	    }
-	}
+            //Mark as image so the loadImagesTask function knows it must load it
+            dataItem.tileObject.isImage = true;
+
+            if (dataItem.tileObject.cachedImage) {
+                //If we have it in cache, then just show it
+                tile.append(dataItem.tileObject.cachedImage);
+                $(dataItem.tileObject.cachedImage).css("width", "100%");
+            }
+            else {
+                //Otherwise, show a placeholder and ensure the loadImagesTask is running
+                jpvs.writeTag(tile, "img").attr("src", jpvs.Resources.images.loading);
+                loadImagesTask();
+            }
+        }
 
         function html(dataItem) {
             return jpvs.writeTag(this, "a", dataItem.tileObject.key).attr({
