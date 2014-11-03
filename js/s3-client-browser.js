@@ -341,8 +341,13 @@ var SCB = (function () {
 
             if (dataItem.tileObject.cachedImage) {
                 //If we have it in cache, then just show it
-                tile.append(dataItem.tileObject.cachedImage);
-                $(dataItem.tileObject.cachedImage).css("width", "100%");
+                //We use a canvas so we show it scaled down
+                var canvas = jpvs.writeTag(tile, "canvas").attr({ width: 100, height: 100 }).css({ width: "100%", height: "100%" });
+                var ctx = canvas[0].getContext("2d");
+                ctx.drawImage(dataItem.tileObject.cachedImage, 0, 0, 100, 100);
+
+                //tile.append(dataItem.tileObject.cachedImage);
+                //$(dataItem.tileObject.cachedImage).css("width", "100%");
             }
             else {
                 //Otherwise, show a placeholder and ensure the loadImagesTask is running
@@ -352,16 +357,17 @@ var SCB = (function () {
         }
 
         function html(dataItem) {
-            return jpvs.writeTag(this, "a", dataItem.tileObject.key).attr({
+            return jpvs.writeTag(this, "a", getName(dataItem.tileObject.key)).attr({
                 href: dataItem.tileObject.key,
                 target: dataItem.tileObject.key
             });
         }
 
         function video(dataItem) {
-            var v = jpvs.writeTag(this, "video").css("width", "100%").attr("controls", "true");
-            jpvs.writeTag(v, "source").attr("src", dataItem.tileObject.key);
-            return v;
+            return jpvs.writeTag(this, "a", getName(dataItem.tileObject.key)).attr({
+                href: dataItem.tileObject.key,
+                target: dataItem.tileObject.key
+            });
         }
 
         return {
@@ -372,6 +378,7 @@ var SCB = (function () {
             ".htm": html,
             ".html": html,
             ".mp4": video,
+            ".avi": video,
             ".mov": video
         };
     })();

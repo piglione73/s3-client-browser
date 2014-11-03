@@ -1186,10 +1186,11 @@ jpvs.makeWidget({
             return this;
         },
 
-        applyPosition: function () {
+        applyPosition: function (flagAnimate) {
             /// <summary>This function applies the positioning set into the "position" property and makes sure
             /// this popup is not bigger than the viewport. If bigger, it is automatically reduced and scrollbars
             /// are displayed.</summary>
+            /// <param name="flagAnimate" type="Boolean">Set to true for animating</param>
             return this;
         },
 
