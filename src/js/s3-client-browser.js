@@ -1,5 +1,6 @@
 /// <reference path="jpvs-all.js" />
 /// <reference path="jpvs-doc.js" />
+/// <reference path="utils.js" />
 
 var SCB = (function () {
 
@@ -11,7 +12,7 @@ var SCB = (function () {
         w = widgets;
 
         //Load configuration
-        loadParamsFromStorage();
+        connectionParameters = Utils.loadParamsFromStorage();
 
         //Initial tile size
         w.filebrowser.tileWidth(w.filebrowser.width() / 3);
@@ -26,46 +27,6 @@ var SCB = (function () {
             //Show results
             showFolderContent(directory, dirs, files);
         });
-    }
-
-    function loadParamsFromStorage() {
-        try {
-            var params = localStorage["ConnectionParameters"];
-            var arr = (params || "").split("|");
-
-            connectionParameters = {
-                bucketName: arr[0] || "",
-                accessKeyId: arr[1] || "",
-                secretAccessKey: arr[2] || "",
-                region: arr[3] || "",
-                root: arr[4] || ""
-            };
-        }
-        catch (e) {
-            connectionParameters = {};
-        }
-    }
-
-    function saveParamsIntoStorage() {
-        var arr = [connectionParameters.bucketName, connectionParameters.accessKeyId, connectionParameters.secretAccessKey, connectionParameters.region, connectionParameters.root];
-        try {
-            localStorage["ConnectionParameters"] = arr.join("|");
-        }
-        catch (e) {
-        }
-    }
-
-    function progress(callback) {
-        jpvs.showDimScreen(0, 100, template);
-
-        return function () {
-            jpvs.hideDimScreen();
-            callback.apply(null, arguments);
-        };
-
-        function template() {
-            this.removeClass("DimScreen").addClass("Progress");
-        }
     }
 
     function configure() {
@@ -104,11 +65,11 @@ var SCB = (function () {
             connectionParameters.region = $.trim(txtRegion.text());
             connectionParameters.root = $.trim(txtRoot.text());
 
-            saveParamsIntoStorage();
+            Utils.saveParamsIntoStorage(connectionParameters);
         }
 
         function onTest() {
-            listBucket(connectionParameters.root, progress(showFolderContent));
+            listBucket(connectionParameters.root, Utils.progress(showFolderContent));
         }
     }
 
@@ -229,12 +190,12 @@ var SCB = (function () {
     }
 
     function goToParent() {
-        listBucket(getParent(currentDirectory), progress(showFolderContent));
+        listBucket(getParent(currentDirectory), Utils.progress(showFolderContent));
     }
 
     function onClickDirectory(dir) {
         return function () {
-            listBucket(dir, progress(showFolderContent));
+            listBucket(dir, Utils.progress(showFolderContent));
         };
     }
 
