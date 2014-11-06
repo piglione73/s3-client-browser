@@ -5,32 +5,49 @@ module.exports = function (grunt) {
         clean: ['build'],
         copy: {
             build_debug: {
+                expand: true,
+                cwd: 'src',
                 src: [
-                    'index.html',
-                    'js/**/*', '!js/**/*-doc.js',
-                    'css/**/*',
-                    'images/**/*'
+                    '**',
+                    '!js/**/*-doc.js'
                 ],
                 dest: 'build/debug/'
             },
-            build_debug2: {
+            build_debug_single_js: {
+                expand: true,
                 cwd: 'build/debug',
-                src: ['**/*', '!js/**/*'],
-                dest: 'build/debug2/'
+                src: ['**', '!js/**/*'],
+                dest: 'build/debug-single-js/'
             },
             build_deploy: {
+                expand: true,
                 cwd: 'build/debug',
-                src: ['**/*', '!js/**/*'],
+                src: ['**', '!js/**/*'],
                 dest: 'build/deploy/'
+            }
+        },
+        'curl-dir': {
+            dependencies: {
+                src: [
+                  'https://code.jquery.com/jquery-1.11.0.min.js',
+                  'https://code.jquery.com/ui/1.11.1/jquery-ui.min.js',
+                  'https://sdk.amazonaws.com/js/aws-sdk-2.0.16.min.js'
+                ],
+                dest: 'build/debug/js'
             }
         },
         concat: {
             options: {
-                separator: ';'
+                separator: ';\n\n\n'
             },
-            debug2: {
-                src: ['build/debug/js/**/*.js'],
-                dest: 'build/debug2/js/<%= pkg.name %>.js'
+            debug_single_js: {
+                src: [
+                    'build/debug/js/jquery-1.11.0.min.js',
+                    'build/debug/js/jquery-ui.min.js',
+                    'build/debug/js/aws-sdk-2.0.16.min.js',
+                    'build/debug/js/**/*.js'
+                ],
+                dest: 'build/debug-single-js/js/<%= pkg.name %>.js'
             }
         },
         uglify: {
@@ -39,10 +56,26 @@ module.exports = function (grunt) {
             },
             deploy: {
                 files: {
-                    'build/deploy/js/<%= pkg.name %>.min.js': ['<%= concat.debug2.dest %>']
+                    'build/deploy/js/<%= pkg.name %>.min.js': ['<%= concat.debug_single_js.dest %>']
                 }
             }
         },
+        processhtml: {
+            options: {
+                strip: true
+            },
+            debug_single_js: {
+                files: {
+                    'build/debug-single-js/index.html': ['build/debug/index.html']
+                }
+            },
+            deploy: {
+                files: {
+                    'build/deploy/index.html': ['build/debug/index.html']
+                }
+            }
+        },
+
         qunit: {
             files: ['test/**/*.html']
         }
@@ -73,7 +106,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-copy');
     //grunt.registerTask('test', ['jshint', 'qunit']);
+    grunt.loadNpmTasks('grunt-processhtml');
+    grunt.loadNpmTasks('grunt-curl');
 
-    grunt.registerTask('default', ['clean', 'copy:build_debug', 'copy:build_debug2', 'concat:debug2', 'copy:build_deploy', 'uglify:deploy']);
+    grunt.registerTask('default', ['copy:build_debug', 'curl-dir:dependencies', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
 
 };
