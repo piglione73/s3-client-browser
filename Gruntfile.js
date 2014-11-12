@@ -109,6 +109,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-processhtml');
     grunt.loadNpmTasks('grunt-curl');
 
-    grunt.registerTask('default', ['copy:build_debug', 'curl-dir:dependencies', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
+    grunt.registerTask('default', ['clean', 'copy:build_debug', 'curl-dir:dependencies', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
 
 };
