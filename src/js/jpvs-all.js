@@ -4192,8 +4192,8 @@ Depends: core
 
             function trackFingers() {
                 var identifiers = {};
-                for (var i = 0; i < te.targetTouches.length; i++) {
-                    var touch = te.targetTouches[i];
+                for (var i = 0; i < te.touches.length; i++) {
+                    var touch = te.touches[i];
                     var finger = fingers[touch.identifier];
                     identifiers[touch.identifier] = true;
 
@@ -4286,7 +4286,7 @@ Depends: core
                         }
                         else {
                             //Let's see if it was a tap (short/long)
-                            if (te.targetTouches.length == 0) {
+                            if (te.touches.length == 0) {
                                 var dx = finger.current.clientX - finger.start.clientX;
                                 var dy = finger.current.clientY - finger.start.clientY;
                                 var distance = Math.sqrt(dx * dx + dy * dy);
