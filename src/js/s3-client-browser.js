@@ -18,6 +18,11 @@ var SCB = (function () {
         w.filebrowser.tileWidth(w.filebrowser.width() / 3);
         w.filebrowser.tileHeight(null);
 
+        //Click on a tile
+        w.filebrowser.tileClick(function (tileObject) {
+            tileObject.onClick();
+        });
+
         //List root directory
         currentDirectory = connectionParameters.root;
         listBucket(currentDirectory, function (directory, dirs, files) {
@@ -186,17 +191,11 @@ var SCB = (function () {
         w.filebrowser.originY(w.filebrowser.tileSpacingVert() + w.filebrowser.tileHeight() / 2);
         w.filebrowser.desiredOriginX(w.filebrowser.originX());
         w.filebrowser.desiredOriginY(w.filebrowser.originY());
-        w.filebrowser.startingTile(firstTile).refresh(true);
+        w.filebrowser.startingTile(firstTile).refresh();
     }
 
     function goToParent() {
         listBucket(getParent(currentDirectory), Utils.progress(showFolderContent));
-    }
-
-    function onClickDirectory(dir) {
-        return function () {
-            listBucket(dir, Utils.progress(showFolderContent));
-        };
     }
 
     function Tile(entry) {
@@ -234,9 +233,12 @@ var SCB = (function () {
 
     Tile.prototype.template = function (dataItem) {
         if (dataItem.tileObject.type == "D") {
-            this.click(onClickDirectory(dataItem.tileObject.key));
             jpvs.writeln(this, getName(dataItem.tileObject.key));
             this.addClass("Directory");
+
+            dataItem.tileObject.onClick = function () {
+                listBucket(dataItem.tileObject.key, Utils.progress(showFolderContent));
+            };
         }
         else {
             //Look for a template for the current file extension
@@ -325,10 +327,10 @@ var SCB = (function () {
         }
 
         function video(dataItem) {
-            return jpvs.writeTag(this, "a", getName(dataItem.tileObject.key)).attr({
-                href: dataItem.tileObject.key,
-                target: dataItem.tileObject.key
-            });
+            jpvs.write(this, getName(dataItem.tileObject.key));
+            dataItem.tileObject.onClick = function () {
+                window.open(dataItem.tileObject.key, dataItem.tileObject.key);
+            };
         }
 
         return {

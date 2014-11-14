@@ -9349,6 +9349,8 @@ Depends: core
 
     jpvs.TileBrowser = function (selector) {
         this.attach(selector);
+
+        this.tileClick = jpvs.event(this);
     };
 
     jpvs.makeWidget({
@@ -9381,34 +9383,35 @@ Depends: core
                 zIndex: 99999
             });
 
-            jpvs.writeTag(buttonContainer, "img").addClass("Up").click(onClick(W, "up")).attr("src", jpvs.Resources.images.up).css({
+            jpvs.writeTag(buttonContainer, "img").addClass("Up").click(onClickCommand(W, "up")).attr("src", jpvs.Resources.images.up).css({
                 position: "absolute",
                 right: "0px",
                 top: "0px",
                 width: "100%"
             });
 
-            jpvs.writeTag(buttonContainer, "img").addClass("Down").click(onClick(W, "down")).attr("src", jpvs.Resources.images.down).css({
+            jpvs.writeTag(buttonContainer, "img").addClass("Down").click(onClickCommand(W, "down")).attr("src", jpvs.Resources.images.down).css({
                 position: "absolute",
                 right: "0px",
                 bottom: "0px",
                 width: "100%"
             });
 
-            jpvs.writeTag(buttonContainer, "img").addClass("Plus").click(onClick(W, "plus")).attr("src", jpvs.Resources.images.plus).css({
+            jpvs.writeTag(buttonContainer, "img").addClass("Plus").click(onClickCommand(W, "plus")).attr("src", jpvs.Resources.images.plus).css({
                 position: "absolute",
                 right: "0px",
                 bottom: "50%",
                 width: "100%"
             });
 
-            jpvs.writeTag(buttonContainer, "img").addClass("Minus").click(onClick(W, "minus")).attr("src", jpvs.Resources.images.minus).css({
+            jpvs.writeTag(buttonContainer, "img").addClass("Minus").click(onClickCommand(W, "minus")).attr("src", jpvs.Resources.images.minus).css({
                 position: "absolute",
                 right: "0px",
                 top: "50%",
                 width: "100%"
             });
 
+            W.element.on("click", onClick(W));
             W.element.on("wheel", onWheel(W));
             jpvs.addGestureListener(W.element, null, onGesture(W));
         },
@@ -9419,10 +9422,10 @@ Depends: core
 
         prototype: {
             refresh: function (flagAnimate) {
-                render(this);
-
                 if (flagAnimate)
                     ensureAnimation(this);
+                else
+                    render(this);
 
                 return this;
             },
@@ -9784,7 +9787,7 @@ Depends: core
         }
     }
 
-    function onClick(W, command) {
+    function onClickCommand(W, command) {
         var zoomFactor = 1.1;
 
         return function () {
@@ -9850,6 +9853,15 @@ Depends: core
         }
     }
 
+    function onClick(W) {
+        return function (e) {
+            var tile = $(e.target).closest(".Tile");
+            var tileObject = tile && tile.length && tile.data("tileObject");
+            if (tileObject)
+                return W.tileClick.fire(W, null, tileObject, e);
+        };
+    }
+
     function onWheel(W) {
         return function (e) {
             var deltaY = e && e.originalEvent && e.originalEvent.deltaY || e.originalEvent.deltaX || 0;
@@ -9884,32 +9896,32 @@ Depends: core
                 if (info) {
                     //Ensure the starting tile is the touched one (change also the origin, so we move nothing)
                     if (tileObject !== W.startingTile()) {
-                        W.originX(info.x + info.tw / 2);
-                        W.originY(info.y + info.th / 2);
+                        var orX = info.x + info.tw / 2;
+                        var orY = info.y + info.th / 2;
+
+                        W.originX(orX);
+                        W.originY(orY);
+                        W.desiredOriginX(orX);
+                        W.desiredOriginY(orY);
                         W.startingTile(tileObject);
                     }
 
                     //Then have the desired origin follow dragX/dragY, so the touched tile follows the touch
-                    //We want no animation because the moving finger is already an animation, so we set the origin equal to the desired origin
-                    var orX = W.originX() + e.dragX;
-                    var orY = W.originY() + e.dragY;
-                    W.originX(orX);
-                    W.originY(orY);
+                    var orX = W.desiredOriginX() + e.dragX;
+                    var orY = W.desiredOriginY() + e.dragY;
                     W.desiredOriginX(orX);
                     W.desiredOriginY(orY);
 
-                    //No animation
-                    W.refresh(false);
+                    //Refresh with an animation
+                    W.refresh(true);
                 }
             }
             else if (e.isZoom) {
                 //Zoom as specified
                 zoom(W, e.zoomFactor);
-                W.tileWidth(W.desiredTileWidth());
-                W.tileHeight(W.desiredTileHeight());
 
-                //No animation
-                W.refresh(false);
+                //Refresh with an animation
+                W.refresh(true);
             }
             else if (e.isTap) {
                 //If the user taps a button in the .Buttons div, then let's forward a click to it
@@ -9927,10 +9939,9 @@ Depends: core
                 else {
                     //Find the touched tileObject (it might be the touch.target or a parent, depending on where the touch happened)
                     var tile = $(e.target).closest(".Tile");
-                    if (tile.length) {
-                        //Tapped a tile. Let's forward a click to it
-                        tile.click();
-                    }
+                    var tileObject = tile && tile.length && tile.data("tileObject");
+                    if (tileObject)
+                        return W.tileClick.fire(W, null, tileObject, null);     //We have no browser event to forward here
                 }
             }
         };
