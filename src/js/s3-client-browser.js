@@ -1,6 +1,7 @@
 /// <reference path="jpvs-all.js" />
 /// <reference path="jpvs-doc.js" />
 /// <reference path="utils.js" />
+/// <reference path="photo-gallery.js" />
 
 var SCB = (function () {
 
@@ -20,7 +21,8 @@ var SCB = (function () {
 
         //Click on a tile
         w.filebrowser.tileClick(function (tileObject) {
-            tileObject.onClick();
+            if (tileObject.onClick)
+                tileObject.onClick();
         });
 
         //List root directory
@@ -305,12 +307,16 @@ var SCB = (function () {
             if (dataItem.tileObject.cachedImage) {
                 //If we have it in cache, then just show it
                 //We use a canvas so we show it scaled down
-                var canvas = jpvs.writeTag(tile, "canvas").attr({ width: 100, height: 100 }).css({ width: "100%", height: "100%" });
-                var ctx = canvas[0].getContext("2d");
-                ctx.drawImage(dataItem.tileObject.cachedImage, 0, 0, 100, 100);
+                //var canvas = jpvs.writeTag(tile, "canvas").attr({ width: 100, height: 100 }).css({ width: "100%", height: "100%" });
+                //var ctx = canvas[0].getContext("2d");
+                //ctx.drawImage(dataItem.tileObject.cachedImage, 0, 0, 100, 100);
 
-                //tile.append(dataItem.tileObject.cachedImage);
-                //$(dataItem.tileObject.cachedImage).css("width", "100%");
+                tile.append(dataItem.tileObject.cachedImage);
+                $(dataItem.tileObject.cachedImage).css("width", "100%");
+
+                dataItem.tileObject.onClick = function () {
+                    PhotoGallery.show(dataItem.tileObject);
+                };
             }
             else {
                 //Otherwise, show a placeholder and ensure the loadImagesTask is running
