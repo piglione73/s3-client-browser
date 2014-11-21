@@ -311,8 +311,7 @@ var SCB = (function () {
                 //var ctx = canvas[0].getContext("2d");
                 //ctx.drawImage(dataItem.tileObject.cachedImage, 0, 0, 100, 100);
 
-                tile.append(dataItem.tileObject.cachedImage);
-                $(dataItem.tileObject.cachedImage).css("width", "100%");
+                Utils.appendCentered(tile, dataItem.tileObject.cachedImage);
 
                 dataItem.tileObject.onClick = function () {
                     PhotoGallery.show(dataItem.tileObject);

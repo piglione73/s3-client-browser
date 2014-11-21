@@ -44,5 +44,43 @@ var Utils = (function () {
         }
     };
 
+    exports.appendCentered = function (div, img) {
+        //Image size
+        var w = img.naturalWidth;
+        var h = img.naturalHeight;
+
+        //Container size
+        var W = div.width();
+        var H = div.height();
+
+        //Zoom factor to apply to the image
+        var kx = W / w;
+        var ky = H / h;
+        var k = Math.min(kx, ky);
+
+        //We only want to shrink, not magnify
+        k = Math.min(1, k);
+
+        //Shrink
+        w *= k;
+        h *= k;
+
+        //Clone, append and center
+        var clonedImg = $(img).clone();
+        div.append(clonedImg);
+
+        //Center in container
+        var x = (W - w) / 2;
+        var y = (H - h) / 2;
+
+        clonedImg.css({
+            position: "absolute",
+            top: y + "px",
+            left: x + "px",
+            width: w + "px",
+            height: h + "px"
+        });
+    };
+
     return exports;
 })();
