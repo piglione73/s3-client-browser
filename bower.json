@@ -16,6 +16,6 @@
   "dependencies": {
     "jquery": "~2.1.1",
     "jquery-ui": "~1.11.2",
-    "aws-sdk-js": "~2.0.29"
+    "aws-sdk-2.0.29.min": "https://sdk.amazonaws.com/js/aws-sdk-2.0.29.min.js"
   }
 }
