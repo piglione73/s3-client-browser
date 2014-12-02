@@ -3,6 +3,14 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         clean: ['build'],
+
+        bower_concat: {
+            all: {
+                dest: 'build/_bower.js',
+                cssDest: 'build/_bower.css'
+            }
+        },
+
         copy: {
             build_debug: {
                 expand: true,
@@ -100,15 +108,13 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    //grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-qunit');
-    //grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-copy');
-    //grunt.registerTask('test', ['jshint', 'qunit']);
     grunt.loadNpmTasks('grunt-processhtml');
     grunt.loadNpmTasks('grunt-curl');
-
-    grunt.registerTask('default', ['clean', 'copy:build_debug', 'curl-dir:dependencies', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
+    grunt.loadNpmTasks('grunt-bower-concat');
+    
+    grunt.registerTask('default', ['clean', 'bower_concat', 'copy:build_debug', 'curl-dir:dependencies', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
 
 };

@@ -1,0 +1,21 @@
+{
+  "name": "s3-client-browser",
+  "version": "0.0.1",
+  "homepage": "https://github.com/piglione73/s3-client-browser",
+  "authors": [
+    "piglione73 <roberto.rossi@paviasystem.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1",
+    "jquery-ui": "~1.11.2",
+    "aws-sdk-js": "~2.0.29"
+  }
+}
