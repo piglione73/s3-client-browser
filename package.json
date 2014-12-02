@@ -24,7 +24,6 @@
     "grunt-contrib-copy": "^0.7.0",
     "grunt-contrib-qunit": "^0.5.2",
     "grunt-contrib-uglify": "^0.6.0",
-    "grunt-curl": "^2.0.3",
     "grunt-processhtml": "^0.3.3"
   }
 }

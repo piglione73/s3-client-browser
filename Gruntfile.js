@@ -6,8 +6,8 @@ module.exports = function (grunt) {
 
         bower_concat: {
             all: {
-                dest: 'build/_bower.js',
-                cssDest: 'build/_bower.css'
+                dest: 'build/debug/js/libs.js',
+                cssDest: 'build/debug/css/libs.css'
             }
         },
 
@@ -34,25 +34,13 @@ module.exports = function (grunt) {
                 dest: 'build/deploy/'
             }
         },
-        'curl-dir': {
-            dependencies: {
-                src: [
-                  'https://code.jquery.com/jquery-1.11.0.min.js',
-                  'https://code.jquery.com/ui/1.11.1/jquery-ui.min.js',
-                  'https://sdk.amazonaws.com/js/aws-sdk-2.0.16.min.js'
-                ],
-                dest: 'build/debug/js'
-            }
-        },
         concat: {
             options: {
                 separator: ';\n\n\n'
             },
             debug_single_js: {
                 src: [
-                    'build/debug/js/jquery-1.11.0.min.js',
-                    'build/debug/js/jquery-ui.min.js',
-                    'build/debug/js/aws-sdk-2.0.16.min.js',
+                    'build/debug/js/libs.js',
                     'build/debug/js/**/*.js'
                 ],
                 dest: 'build/debug-single-js/js/<%= pkg.name %>.js'
@@ -112,9 +100,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-processhtml');
-    grunt.loadNpmTasks('grunt-curl');
     grunt.loadNpmTasks('grunt-bower-concat');
     
-    grunt.registerTask('default', ['clean', 'bower_concat', 'copy:build_debug', 'curl-dir:dependencies', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
+    grunt.registerTask('default', ['clean', 'bower_concat', 'copy:build_debug']);
+    grunt.registerTask('deploy', ['clean', 'bower_concat', 'copy:build_debug', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
 
 };
