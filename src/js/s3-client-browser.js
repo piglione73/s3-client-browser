@@ -2,6 +2,7 @@
 /// <reference path="jpvs-doc.js" />
 /// <reference path="utils.js" />
 /// <reference path="photo-gallery.js" />
+/// <reference path="../../bower_components/async/build/async.js" />
 
 var SCB = (function () {
 
