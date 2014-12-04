@@ -28,12 +28,14 @@ var SCB = (function () {
 
         //List root directory
         currentDirectory = connectionParameters.root;
-        listBucket(currentDirectory, function (directory, dirs, files) {
+        var listing = listBucket(currentDirectory);
+        
+        //Show results
+        showFolderContent(listing.directory, listing.directories, listing.files);
+        , function (directory, dirs, files) {
             //Hide loading screen
             $(".Loading").fadeOut();
 
-            //Show results
-            showFolderContent(directory, dirs, files);
         });
     }
 
@@ -87,55 +89,69 @@ var SCB = (function () {
         });
     }
 
-    function listBucket(directory, callback) {
-        awsEnsureConfig();
+    function listBucket(directory) {
+        var ret = new Async.Value();
+        Async.call(run, this, arguments);
+        return ret;
 
-        if (directory != "" && !endsWith(directory, "/"))
-            directory = directory + "/";
-
-        var directories = [], files = [];
-
-        var s3 = new AWS.S3();
-        list();
-
-        function list(marker) {
-            var params = {
-                Bucket: connectionParameters.bucketName,
-                Prefix: directory,
-                Delimiter: "/",
-                Marker: marker
-            };
-
-            s3.listObjects(params, function (err, data) {
-                if (err) {
-                    jpvs.alert("Error", err.toString());
-
-                    //Done
-                    callback(directory, [], []);
-                }
-                else
-                    onDataReceived(data);
+        function returnValues(directories, files) {
+            ret.setValue({
+                directory: directory,
+                directories: directories,
+                files: files
             });
         }
 
-        function onDataReceived(data) {
-            for (var i in data.CommonPrefixes) {
-                var item = data.CommonPrefixes[i].Prefix;
-                directories.push(item);
+        function run(directory) {
+            awsEnsureConfig();
+
+            if (directory != "" && !endsWith(directory, "/"))
+                directory = directory + "/";
+
+            var directories = [], files = [];
+
+            var s3 = new AWS.S3();
+            list();
+
+            function list(marker) {
+                var params = {
+                    Bucket: connectionParameters.bucketName,
+                    Prefix: directory,
+                    Delimiter: "/",
+                    Marker: marker
+                };
+
+                s3.listObjects(params, function (err, data) {
+                    if (err) {
+                        jpvs.alert("Error", err.toString());
+
+                        //Done
+                        returnValues([], []);
+                    }
+                    else
+                        onDataReceived(data);
+                });
             }
 
-            for (var i in data.Contents) {
-                var item = data.Contents[i];
-                files.push(item);
-            }
+            function onDataReceived(data) {
+                for (var i in data.CommonPrefixes) {
+                    var item = data.CommonPrefixes[i].Prefix;
+                    directories.push(item);
+                }
 
-            if (data.IsTruncated) {
-                //Repeat request until we received all keys
-                list(data.NextMarker);
-            }
-            else {
-                //Done
-                callback(directory, directories, files);
+                for (var i in data.Contents) {
+                    var item = data.Contents[i];
+                    files.push(item);
+                }
+
+                if (data.IsTruncated) {
+                    //Repeat request until we received all keys
+                    list(data.NextMarker);
+                }
+                else {
+                    //Done
+                    returnValues(directories, files);
+                }
             }
         }
     }
@@ -169,32 +185,36 @@ var SCB = (function () {
     }
 
     function showFolderContent(directory, directories, files) {
-        currentDirectory = directory;
+        Async.call(run, this, arguments);
 
-        var entries = [];
-        for (var i in directories) {
-            var dir = directories[i];
-            entries.push({ type: "D", key: dir });
+        function run(directory, directories, files) {
+            currentDirectory = directory;
+
+            var entries = [];
+            for (var i in directories) {
+                var dir = directories[i];
+                entries.push({ type: "D", key: dir });
+            }
+
+            for (var i in files) {
+                var file = files[i];
+
+                //Skip if ends with slash (it's a directory and we already have it in "directories")
+                if (file.Key.substring(file.Key.length - 1) == "/")
+                    continue;
+
+                entries.push({ type: "F", key: file.Key });
+            }
+
+            var firstTile = Tile.wrap(entries);
+
+            //Show the first tile on the top left corner of the tile browser
+            w.filebrowser.originX(w.filebrowser.tileSpacingHorz() + w.filebrowser.tileWidth() / 2);
+            w.filebrowser.originY(w.filebrowser.tileSpacingVert() + w.filebrowser.tileHeight() / 2);
+            w.filebrowser.desiredOriginX(w.filebrowser.originX());
+            w.filebrowser.desiredOriginY(w.filebrowser.originY());
+            w.filebrowser.startingTile(firstTile).refresh();
         }
-
-        for (var i in files) {
-            var file = files[i];
-
-            //Skip if ends with slash (it's a directory and we already have it in "directories")
-            if (file.Key.substring(file.Key.length - 1) == "/")
-                continue;
-
-            entries.push({ type: "F", key: file.Key });
-        }
-
-        var firstTile = Tile.wrap(entries);
-
-        //Show the first tile on the top left corner of the tile browser
-        w.filebrowser.originX(w.filebrowser.tileSpacingHorz() + w.filebrowser.tileWidth() / 2);
-        w.filebrowser.originY(w.filebrowser.tileSpacingVert() + w.filebrowser.tileHeight() / 2);
-        w.filebrowser.desiredOriginX(w.filebrowser.originX());
-        w.filebrowser.desiredOriginY(w.filebrowser.originY());
-        w.filebrowser.startingTile(firstTile).refresh();
     }
 
     function goToParent() {
