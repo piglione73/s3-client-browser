@@ -31,14 +31,23 @@ var SCB = (function () {
         var listing = listBucket(currentDirectory);
         
         //Show results
-        showFolderContent(listing.directory, listing.directories, listing.files);
-        , function (directory, dirs, files) {
-            //Hide loading screen
-            $(".Loading").fadeOut();
-
-        });
+        var e = showFolderContent(listing);
+        
+        //At the end, hide the loading screen
+        hideLoadingScreen(e);
     }
 
+    function hideLoadingScreen() {
+        var ret = new Async.Value();
+        Async.call(run, this, arguments);
+        return ret;
+
+        function run() {
+            $(".Loading").fadeOut();
+            ret.setValue(true);
+        }
+    }
+    
     function configure() {
         var pop = jpvs.Popup.create().title("Connection parameters");
         jpvs.writeln(pop, "Bucket name:");
@@ -185,7 +194,9 @@ var SCB = (function () {
     }
 
     function showFolderContent(directory, directories, files) {
+        var ret = new Async.Value();
         Async.call(run, this, arguments);
+        return ret;
 
         function run(directory, directories, files) {
             currentDirectory = directory;
@@ -214,6 +225,8 @@ var SCB = (function () {
             w.filebrowser.desiredOriginX(w.filebrowser.originX());
             w.filebrowser.desiredOriginY(w.filebrowser.originY());
             w.filebrowser.startingTile(firstTile).refresh();
+            
+            ret.setValue(true);
         }
     }
 
