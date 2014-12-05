@@ -120,7 +120,7 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerTask('default', ['bower_install', 'bower_update', 'clean', 'bower_concat', 'copy:build_debug']);
+    grunt.registerTask('default', ['clean', 'bower_concat', 'copy:build_debug']);
     grunt.registerTask('deploy', ['bower_install', 'bower_update', 'clean', 'bower_concat', 'copy:build_debug', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
 
 };

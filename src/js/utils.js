@@ -80,6 +80,8 @@ var Utils = (function () {
             width: w + "px",
             height: h + "px"
         });
+
+        return clonedImg;
     };
 
     return exports;
