@@ -31,13 +31,13 @@ var Utils = (function () {
         }
     };
 
-    exports.progress = function (callback) {
+    exports.progress = function (asyncValue) {
+        //Keep the dimscreen until the given asyncValue is ready
         jpvs.showDimScreen(0, 100, template);
 
-        return function () {
+        asyncValue.then(function () {
             jpvs.hideDimScreen();
-            callback.apply(null, arguments);
-        };
+        });
 
         function template() {
             this.removeClass("DimScreen").addClass("Progress");

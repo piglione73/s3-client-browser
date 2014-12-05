@@ -27,27 +27,45 @@ var SCB = (function () {
         });
 
         //List root directory
-        currentDirectory = connectionParameters.root;
-        var listing = listBucket(currentDirectory);
-        
-        //Show results
-        var e = showFolderContent(listing);
-        
-        //At the end, hide the loading screen
-        hideLoadingScreen(e);
+        goToFolder(connectionParameters.root).then(hideLoadingScreen);
+    }
+
+    /*
+    List directory and show its contents in the tile browser
+    */
+    function goToFolder(directory) {
+        //This function is asynchronous
+        return Async.call(run, arguments);
+
+        function run(directory) {
+            //List directory
+            var listing = listBucket(directory);
+
+            //Keep the screen dimmed until the listing is available
+            Utils.progress(listing);
+
+            //Show results in tile browser
+            var ret = this;
+            showFolderContent(listing).then(function () {
+                //At the end, signal completion by returning true
+                ret.setValue(true);
+            });
+        }
     }
 
     function hideLoadingScreen() {
-        var ret = new Async.Value();
-        Async.call(run, this, arguments);
-        return ret;
+        //This function is asynchronous
+        return Async.call(run, arguments);
 
         function run() {
-            $(".Loading").fadeOut();
-            ret.setValue(true);
+            var ret = this;
+            $(".Loading").fadeOut(function () {
+                //Signal completion
+                ret.setValue(true);
+            });
         }
     }
-    
+
     function configure() {
         var pop = jpvs.Popup.create().title("Connection parameters");
         jpvs.writeln(pop, "Bucket name:");
@@ -88,22 +106,23 @@ var SCB = (function () {
         }
 
         function onTest() {
-            listBucket(connectionParameters.root, Utils.progress(showFolderContent));
+            goToFolder(connectionParameters.root);
         }
     }
 
     function awsEnsureConfig() {
         AWS.config = new AWS.Config({
-            accessKeyId: connectionParameters.accessKeyId, secretAccessKey: connectionParameters.secretAccessKey, region: connectionParameters.region
+            accessKeyId: connectionParameters.accessKeyId,
+            secretAccessKey: connectionParameters.secretAccessKey,
+            region: connectionParameters.region
         });
     }
 
     function listBucket(directory) {
-        var ret = new Async.Value();
-        Async.call(run, this, arguments);
-        return ret;
+        //This function is asynchronous
+        return Async.call(run, arguments);
 
-        function returnValues(directories, files) {
+        function returnValues(ret, directories, files) {
             ret.setValue({
                 directory: directory,
                 directories: directories,
@@ -112,6 +131,7 @@ var SCB = (function () {
         }
 
         function run(directory) {
+            var ret = this;
             awsEnsureConfig();
 
             if (directory != "" && !endsWith(directory, "/"))
@@ -135,7 +155,7 @@ var SCB = (function () {
                         jpvs.alert("Error", err.toString());
 
                         //Done
-                        returnValues([], []);
+                        returnValues(ret, [], []);
                     }
                     else
                         onDataReceived(data);
@@ -159,7 +179,7 @@ var SCB = (function () {
                 }
                 else {
                     //Done
-                    returnValues(directories, files);
+                    returnValues(ret, directories, files);
                 }
             }
         }
@@ -193,13 +213,15 @@ var SCB = (function () {
             return "???";
     }
 
-    function showFolderContent(directory, directories, files) {
-        var ret = new Async.Value();
-        Async.call(run, this, arguments);
-        return ret;
+    function showFolderContent(listing) {
+        //This function is asynchronous
+        return Async.call(run, arguments);
 
-        function run(directory, directories, files) {
-            currentDirectory = directory;
+        function run(listing) {
+            currentDirectory = listing.directory;
+
+            var directories = listing.directories;
+            var files = listing.files;
 
             var entries = [];
             for (var i in directories) {
@@ -225,13 +247,13 @@ var SCB = (function () {
             w.filebrowser.desiredOriginX(w.filebrowser.originX());
             w.filebrowser.desiredOriginY(w.filebrowser.originY());
             w.filebrowser.startingTile(firstTile).refresh();
-            
-            ret.setValue(true);
+
+            this.setValue(true);
         }
     }
 
     function goToParent() {
-        listBucket(getParent(currentDirectory), Utils.progress(showFolderContent));
+        goToFolder(getParent(currentDirectory));
     }
 
     function Tile(entry) {
@@ -273,7 +295,7 @@ var SCB = (function () {
             this.addClass("Directory");
 
             dataItem.tileObject.onClick = function () {
-                listBucket(dataItem.tileObject.key, Utils.progress(showFolderContent));
+                goToFolder(dataItem.tileObject.key);
             };
         }
         else {

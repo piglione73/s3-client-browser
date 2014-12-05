@@ -101,8 +101,26 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-processhtml');
     grunt.loadNpmTasks('grunt-bower-concat');
-    
-    grunt.registerTask('default', ['clean', 'bower_concat', 'copy:build_debug']);
-    grunt.registerTask('deploy', ['clean', 'bower_concat', 'copy:build_debug', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
+
+    grunt.registerTask('bower_install', 'install dependencies', function () {
+        var exec = require('child_process').exec;
+        var cb = this.async();
+        exec('bower install', { cwd: '.' }, function (err, stdout, stderr) {
+            console.log(stdout);
+            cb();
+        });
+    });
+
+    grunt.registerTask('bower_update', 'update dependencies', function () {
+        var exec = require('child_process').exec;
+        var cb = this.async();
+        exec('bower update', { cwd: '.' }, function (err, stdout, stderr) {
+            console.log(stdout);
+            cb();
+        });
+    });
+
+    grunt.registerTask('default', ['bower_install', 'bower_update', 'clean', 'bower_concat', 'copy:build_debug']);
+    grunt.registerTask('deploy', ['bower_install', 'bower_update', 'clean', 'bower_concat', 'copy:build_debug', 'copy:build_debug_single_js', 'concat:debug_single_js', 'processhtml:debug_single_js', 'copy:build_deploy', 'uglify:deploy', 'processhtml:deploy']);
 
 };
