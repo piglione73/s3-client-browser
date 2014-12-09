@@ -15,10 +15,7 @@ module.exports = function (grunt) {
             build_debug: {
                 expand: true,
                 cwd: 'src',
-                src: [
-                    '**',
-                    '!js/**/*-doc.js'
-                ],
+                src: '**',
                 dest: 'build/debug/'
             },
             build_debug_single_js: {
