@@ -6,6 +6,8 @@ bower_components/
 
 *.*~
 
+java/.metadata/
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
