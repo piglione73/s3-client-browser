@@ -1,7 +1,6 @@
 package com.paviasystem.scaleawsimages;
 
 import java.util.LinkedList;
-import java.util.Spliterator;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -62,11 +61,6 @@ public class ListBucket {
 				// End of listing
 				return false;
 			}
-		}
-
-		@Override
-		public Spliterator<String> trySplit() {
-			return null;
 		}
 	}
 }
