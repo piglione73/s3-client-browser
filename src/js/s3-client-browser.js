@@ -236,7 +236,22 @@ var SCB = (function () {
                 if (file.Key.substring(file.Key.length - 1) == "/")
                     continue;
 
-                entries.push({ type: "F", key: file.Key });
+                //Skip if contains $ (it's a preview)
+                if (file.Key.indexOf("$") > 0)
+                    continue;
+
+                //Look for previews of this file
+                var previews = {};
+                for (var j in files) {
+                    var preview = files[j];
+                    if (preview.Key.substring(0, file.Key.length + 1) == file.Key + "$") {
+                        //It's a preview of file.Key because it's in the form file.Key + "$xxx.jpg" where xxx is the width in pixels
+                        var resolution = preview.Key.substring(file.Key.length + 1, preview.Key.length - 4);
+                        previews[resolution] = preview.Key;
+                    }
+                }
+
+                entries.push({ type: "F", key: file.Key, previews: previews });
             }
 
             var firstTile = Tile.wrap(entries);
@@ -259,6 +274,7 @@ var SCB = (function () {
     function Tile(entry) {
         this.type = entry.type;
         this.key = entry.key;
+        this.previews = entry.previews;
         this.prev = null;
         this.next = null;
 
@@ -333,9 +349,12 @@ var SCB = (function () {
                 var tileObject = tile.data("tileObject");
                 if (tileObject.isImage && !tileObject.cachedImage) {
                     //This tile contains an image that hasn't been loaded yet
+                    //Let's find the right preview
+                    var key = Utils.findPreview(tileObject.key, tileObject.previews, w.filebrowser.tileWidth());
+
                     //Let's load it now
                     var img = new Image();
-                    img.src = tileObject.key;
+                    img.src = key;
                     imageLoading = true;
                     img.addEventListener("load", function () {
                         imageLoading = false;

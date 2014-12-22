@@ -84,5 +84,21 @@ var Utils = (function () {
         return clonedImg;
     };
 
+    exports.findPreview = function (originalKey, previews, width) {
+        //Find the min preview width >= width
+        var w = +Infinity;
+        for (var curW in previews) {
+            var curW2 = parseInt(curW);
+            if (curW2 >= width && curW2 < w)
+                w = curW2;
+        }
+
+        //If found, then return the key of that preview, otherwise use the original key
+        if (w != +Infinity)
+            return previews[w.toString()];
+        else
+            return originalKey;
+    };
+
     return exports;
 })();
