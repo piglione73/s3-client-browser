@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -16,13 +17,13 @@ public class ScaleImages {
 			// image file name)
 			Map<String, List<String>> images = ListBucket.stream().filter(ScaleImages::isImage).collect(Collectors.groupingBy(ScaleImages::getUnscaledKey));
 
-			// Determine groups which have less than five elements (i.e., which
-			// don't have all 4 scaled-down versions)
-			Map<String, List<String>> imagesToBeScaled = images.entrySet().stream().filter(x -> x.getValue().size() < 5).collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+			// Determine groups which have less than 6 elements (i.e., which
+			// don't have all 5 scaled-down versions)
+			Set<String> imagesToBeScaled = images.entrySet().stream().filter(x -> x.getValue().size() < 6).map(x -> x.getKey()).collect(Collectors.toSet());
 
 			// Scale them in parallel, so we go full-CPU-power
 			System.out.println("Found " + imagesToBeScaled.size() + " images to be scaled");
-			imagesToBeScaled.keySet().parallelStream().forEach(ScaleImages::scaleImage);
+			imagesToBeScaled.parallelStream().forEach(ScaleImages::scaleImage);
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}
@@ -52,13 +53,14 @@ public class ScaleImages {
 			// Aspect ratio
 			int w = img.getWidth();
 			int h = img.getHeight();
-			double k = (double) h / w;
+			double k = ((double) h) / w;
 
 			// Save, scaled
 			BucketFiles.save(imageKey + "$800.jpg", img, 800, 800 * k);
 			BucketFiles.save(imageKey + "$400.jpg", img, 400, 400 * k);
 			BucketFiles.save(imageKey + "$200.jpg", img, 200, 200 * k);
 			BucketFiles.save(imageKey + "$100.jpg", img, 100, 100 * k);
+			BucketFiles.save(imageKey + "$50.jpg", img, 50, 50 * k);
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}
