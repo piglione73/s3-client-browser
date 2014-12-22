@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+<project name="ScaleAwsImages" default="jar" basedir=".">
+	<path id="aws.sdk.classpath">
+		<pathelement location="${aws-java-sdk}/lib/aws-java-sdk-1.9.13.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/aspectj-1.6/aspectjrt.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/aspectj-1.6/aspectjweaver.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/commons-codec-1.6/commons-codec-1.6.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/commons-logging-1.1.3/commons-logging-1.1.3.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/freemarker-2.3.18/freemarker-2.3.18.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/httpcomponents-client-4.3/httpclient-4.3.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/httpcomponents-client-4.3/httpcore-4.3.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/jackson-annotations-2.3.0/jackson-annotations-2.3.0.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/jackson-core-2.3.2/jackson-core-2.3.2.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/jackson-databind-2.3.2/jackson-databind-2.3.2.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/javax-mail-1.4.6/javax.mail-api-1.4.6.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/joda-time-2.2/joda-time-2.2.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/spring-3.0/spring-beans-3.0.7.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/spring-3.0/spring-context-3.0.7.jar" />
+		<pathelement location="${aws-java-sdk}/third-party/spring-3.0/spring-core-3.0.7.jar" />
+	</path>
+
+	<target name="clean">
+		<delete includeemptydirs="true">
+			<fileset dir="build" includes="**/*" excludes="classes/**/*" />
+		</delete>
+	</target>
+
+	<target name="compile">
+		<mkdir dir="build" />
+		<javac srcdir="src" destdir="build" classpathref="aws.sdk.classpath" includeantruntime="false" />
+	</target>
+
+	<target name="jar" depends="compile">
+		<copy todir="build" flatten="true">
+			<path refid="aws.sdk.classpath" />
+		</copy>
+
+		<jar destfile="ScaleAwsImages.jar">
+			<fileset dir="build">
+				<include name="**/*.class" />
+				<include name="**/*.jar" />
+			</fileset>
+
+			<manifest>
+				<attribute name="Main-Class" value="com.paviasystem.scaleawsimages.ScaleImages" />
+				<attribute name="Class-Path" value="*.jar" />
+			</manifest>
+		</jar>
+	</target>
+</project>

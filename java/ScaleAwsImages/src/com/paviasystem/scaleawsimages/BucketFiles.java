@@ -1,7 +1,8 @@
 package com.paviasystem.scaleawsimages;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.image.RenderedImage;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,13 +37,29 @@ public class BucketFiles {
 		s3.putObject(new PutObjectRequest(Config.bucketName, key, bytes, metadata));
 	}
 
-	public static void save(String key, Image image) throws IOException {
+	public static void save(String key, BufferedImage image, int width, double height) throws IOException {
+		BufferedImage image2 = createResizedCopy(image, width, height);
+
 		try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-			ImageIO.write((RenderedImage) image, "jpg", bytes);
+			ImageIO.write(image2, "jpg", bytes);
+
+			ObjectMetadata meta = new ObjectMetadata();
+			meta.setContentLength(bytes.size());
+			meta.setContentType("image/jpeg");
 
 			try (ByteArrayInputStream bytes2 = new ByteArrayInputStream(bytes.toByteArray())) {
-				save(key, bytes2, null);
+				save(key, bytes2, meta);
 			}
 		}
+	}
+
+	static BufferedImage createResizedCopy(Image originalImage, int scaledWidth, double scaledHeight) {
+		int h = (int) Math.round(scaledHeight);
+
+		BufferedImage scaledBI = new BufferedImage(scaledWidth, h, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = scaledBI.createGraphics();
+		g.drawImage(originalImage, 0, 0, scaledWidth, h, null);
+		g.dispose();
+		return scaledBI;
 	}
 }
