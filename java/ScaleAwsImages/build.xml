@@ -22,29 +22,37 @@
 
 	<target name="clean">
 		<delete includeemptydirs="true">
-			<fileset dir="build" includes="**/*" excludes="classes/**/*" />
+			<fileset dir="build" includes="**/*" />
+			<fileset dir="dist" includes="**/*" />
 		</delete>
 	</target>
 
-	<target name="compile">
+	<target name="compile" depends="clean">
 		<mkdir dir="build" />
 		<javac srcdir="src" destdir="build" classpathref="aws.sdk.classpath" includeantruntime="false" />
 	</target>
 
 	<target name="jar" depends="compile">
-		<copy todir="build" flatten="true">
+		<mkdir dir="dist" />
+		<copy todir="dist" flatten="true">
 			<path refid="aws.sdk.classpath" />
+			<fileset dir="." includes="ScaleAwsImages.properties" />
 		</copy>
 
-		<jar destfile="ScaleAwsImages.jar">
+		<fileset id="jars" dir="dist" includes="*.jar" />
+		<pathconvert pathsep=" " property="jars2" refid="jars">
+			<flattenmapper />
+		</pathconvert>
+
+
+		<jar destfile="dist/ScaleAwsImages.jar">
 			<fileset dir="build">
 				<include name="**/*.class" />
-				<include name="**/*.jar" />
 			</fileset>
 
 			<manifest>
 				<attribute name="Main-Class" value="com.paviasystem.scaleawsimages.ScaleImages" />
-				<attribute name="Class-Path" value="*.jar" />
+				<attribute name="Class-Path" value=". ${jars2}" />
 			</manifest>
 		</jar>
 	</target>
