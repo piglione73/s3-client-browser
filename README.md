@@ -31,5 +31,40 @@ web site
 How to configure the S3 bucket
 ------------------------------
 Photos and videos contained in your S3 bucket must be available to the web application. In order to be accessible, you will
-need to enable CORS and to set your bucket files as publicly accessible.
+need to:
 
+	1. change your bucket policy so as to allow public read-only access
+	2. edit your CORS configuration to allow the bucket to be accessed from within the browser
+	
+### Bucket policy
+```
+{
+	"Version": "2008-10-17",
+	"Id": "PolicyReadOnly",
+	"Statement": [
+		{
+			"Sid": "Stmt001",
+			"Effect": "Allow",
+			"Principal": {
+				"AWS": "*"
+			},
+			"Action": "s3:Get*",
+			"Resource": "arn:aws:s3:::<your bucket name>/*"
+		}
+	]
+}
+```
+
+### CORS configuration
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+    <CORSRule>
+        <AllowedOrigin>*</AllowedOrigin>
+        <AllowedMethod>GET</AllowedMethod>
+        <AllowedMethod>HEAD</AllowedMethod>
+        <MaxAgeSeconds>600</MaxAgeSeconds>
+        <AllowedHeader>*</AllowedHeader>
+    </CORSRule>
+</CORSConfiguration>
+```
