@@ -58,10 +58,7 @@ var Utils = (function () {
         var ky = H / h;
         var k = Math.min(kx, ky);
 
-        //We only want to shrink, not magnify
-        k = Math.min(1, k);
-
-        //Shrink
+        //Shrink/magnify to fit the container
         w *= k;
         h *= k;
 
@@ -98,6 +95,21 @@ var Utils = (function () {
             return previews[w.toString()];
         else
             return originalKey;
+    };
+
+    exports.loadImage = function (key) {
+        //This function is asynchronous
+        return Async.call(run, arguments);
+
+        function run(key) {
+            var ret = this;
+            var img = new Image();
+            img.src = key;
+            img.addEventListener("load", function () {
+                //At the end, let's return the image
+                ret.setValue(img);
+            }, false);
+        }
     };
 
     return exports;

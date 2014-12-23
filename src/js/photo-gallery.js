@@ -23,7 +23,8 @@ var PhotoGallery = (function () {
         jpvs.addGestureListener(div, null, onGesture);
 
         //Show the image
-        var img = Utils.appendCentered(div, tileObject.cachedImage);
+        var img = Utils.appendCentered(div, tileObject.cachedImage || tileObject.cachedImageFast);
+        increaseResolutionIfNeeded();
 
         var isZoomed = false;
 
@@ -100,6 +101,10 @@ var PhotoGallery = (function () {
                     goToNextPrevImage("N");
                 }
             }
+            else if (e.isEndZoom) {
+                //At the end of a zooming gesture, let's ensure the image is fine enough
+                increaseResolutionIfNeeded();
+            }
         }
 
         function goToNextPrevImage(direction) {
@@ -121,11 +126,54 @@ var PhotoGallery = (function () {
                 //If image, then remove old image and show new
                 if (tileObject.cachedImage) {
                     img.remove();
-                    img = Utils.appendCentered(div, tileObject.cachedImage);
+                    img = Utils.appendCentered(div, tileObject.cachedImage || tileObject.cachedImageFast);
+                    increaseResolutionIfNeeded();
                     isZoomed = false;
                     return;
                 }
             }
+        }
+
+        function increaseResolutionIfNeeded() {
+            var imgNaturalWidth = img[0].naturalWidth;
+            var imgWidth = img.width();
+
+            if (imgWidth <= imgNaturalWidth) {
+                //Resolution is enough for now
+                return;
+            }
+
+            //Let's fetch a finer-resolution preview or the original image, if necessary
+            //We want to see at least imgWidth pixels without blurring
+            var key = Utils.findPreview(tileObject.key, tileObject.previews, imgWidth);
+            var newImg = Utils.loadImage(key);
+            Utils.progress(newImg);
+
+            newImg.then(function (newImg) {
+                //Substitute the current "img" and preserve its position/size attributes
+                var pos = img.css("position");
+                var top = img.css("top");
+                var left = img.css("left");
+                var width = img.css("width");
+                var height = img.css("height");
+
+                //Put newImg
+                var oldImg = img;
+                div.prepend(newImg);
+                img = $(newImg);
+
+                //Keep sizes and coords
+                img.css({
+                    position: pos,
+                    top: top,
+                    left: left,
+                    width: width,
+                    height: height
+                });
+
+                //Remove "img"
+                oldImg.fadeOut(function () { oldImg.remove(); });
+            });
         }
     }
 

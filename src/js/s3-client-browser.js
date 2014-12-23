@@ -280,6 +280,7 @@ var SCB = (function () {
 
         this.isImage = false;
         this.cachedImage = null;
+        this.cachedImageFast = null;
     }
 
     Tile.wrap = function (entries) {
@@ -349,14 +350,24 @@ var SCB = (function () {
                 var tileObject = tile.data("tileObject");
                 if (tileObject.isImage && !tileObject.cachedImage) {
                     //This tile contains an image that hasn't been loaded yet
-                    //Let's find the right preview
+                    //Let's find the right preview and a low-res, fast-loading preview
+                    var keyFastLoading = Utils.findPreview(tileObject.key, tileObject.previews, 0);
                     var key = Utils.findPreview(tileObject.key, tileObject.previews, w.filebrowser.tileWidth());
 
-                    //Let's load it now
-                    var img = new Image();
-                    img.src = key;
+                    //Let's load them now
                     imageLoading = true;
-                    img.addEventListener("load", function () {
+
+                    var imgFastLoading = Utils.loadImage(keyFastLoading);
+                    var img = Utils.loadImage(key);
+
+                    //When the fast-loading image is loaded, we just update the tile, so we have a coarse-resolution tile immediately
+                    imgFastLoading.then(function (img) {
+                        tileObject.cachedImageFast = img;
+                        jpvs.applyTemplate(tile, image, { tileObject: tileObject });
+                    });
+
+                    //When the regular preview is loaded, we update the tile and trigger the loadImagesTask to continue
+                    img.then(function (img) {
                         imageLoading = false;
 
                         //At the end, let's update the tile
@@ -365,7 +376,7 @@ var SCB = (function () {
 
                         //Then continue loading as needed
                         loadImagesTask();
-                    }, false);
+                    });
 
                     //Exit from loop
                     return false;
@@ -381,12 +392,18 @@ var SCB = (function () {
 
             if (dataItem.tileObject.cachedImage) {
                 //If we have it in cache, then just show it
-                //We use a canvas so we show it scaled down
-                //var canvas = jpvs.writeTag(tile, "canvas").attr({ width: 100, height: 100 }).css({ width: "100%", height: "100%" });
-                //var ctx = canvas[0].getContext("2d");
-                //ctx.drawImage(dataItem.tileObject.cachedImage, 0, 0, 100, 100);
-
                 Utils.appendCentered(tile, dataItem.tileObject.cachedImage);
+
+                dataItem.tileObject.onClick = function () {
+                    PhotoGallery.show(dataItem.tileObject);
+                };
+
+                //Let's free memory: we don't need the fast-loading version any longer
+                dataItem.tileObject.cachedImageFast = null;
+            }
+            else if (dataItem.tileObject.cachedImageFast) {
+                //If we just have the lower-resolution version, then just show it
+                Utils.appendCentered(tile, dataItem.tileObject.cachedImageFast);
 
                 dataItem.tileObject.onClick = function () {
                     PhotoGallery.show(dataItem.tileObject);
