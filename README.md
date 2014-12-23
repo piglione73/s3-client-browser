@@ -6,7 +6,7 @@ access to S3 buckets.
 
 How to install
 --------------
-Make sure you have [grunt command line interface](https://github.com/gruntjs/grunt-cli) installed as a global package:
+Make sure you have the [grunt command line interface](https://github.com/gruntjs/grunt-cli) installed as a global package:
 
 ```
 npm install -g grunt-cli
@@ -21,7 +21,7 @@ Clone a copy of the main git repo by running:
 git clone git://github.com/piglione73/s3-client-browser.git
 ```
 
-Enter the s3-client-browser directory and run:
+Enter the `s3-client-browser` directory and run:
 ```
 npm install
 grunt deploy
@@ -72,9 +72,9 @@ need to:
 
 How to create thumbnails
 ------------------------
-A java tool for automatically creating photo thumbnails is provided in the java subdirectory.
+A java tool for automatically creating photo thumbnails is provided in the `java` subdirectory.
 
-Make sure you have the [AWS SDK fof Java](http://aws.amazon.com/sdk-for-java).
+Make sure you have the [AWS SDK for Java](http://aws.amazon.com/sdk-for-java).
 
 In the `java/ScaleAwsImages` subdirectory, run:
 ```
