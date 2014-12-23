@@ -17,12 +17,13 @@ grunt -V
 ```
 Clone a copy of the main git repo by running:
 
-```bash
+```
 git clone git://github.com/piglione73/s3-client-browser.git
 ```
 
-Enter the s3-client-browser directory and run the build script:
-```bash
+Enter the s3-client-browser directory and run:
+```
+npm install
 grunt deploy
 ```
 The built version of s3-client-browser will be put in the `build/deploy/` subdirectory. Copy its content into the root of your 
@@ -68,3 +69,30 @@ need to:
     </CORSRule>
 </CORSConfiguration>
 ```
+
+How to create thumbnails
+------------------------
+A java tool for automatically creating photo thumbnails is provided in the java subdirectory.
+
+Make sure you have the [AWS SDK fof Java](http://aws.amazon.com/sdk-for-java).
+
+In the `java/ScaleAwsImages` subdirectory, run:
+```
+ant
+```
+
+Go to the `java/ScaleAwsImages/dist` subdirectory.
+
+Create a file named `ScaleAwsImages.properties` with the following content:
+```
+bucketName=<your bucket name>
+```
+
+Configure your AWS credentials in the `.aws/credentials` file, as explained [here](http://aws.amazon.com/developers/getting-started/java).
+
+Run the java tool by typing:
+```
+java -jar ScaleAwsImages.jar
+```
+
+The tool will try to create all necessary thumbnails for speeding up the web application.
