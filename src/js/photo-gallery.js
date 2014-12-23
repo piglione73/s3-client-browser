@@ -147,7 +147,7 @@ var PhotoGallery = (function () {
             //We want to see at least imgWidth pixels without blurring
             var key = Utils.findPreview(tileObject.key, tileObject.previews, imgWidth);
             var newImg = Utils.loadImage(key);
-            Utils.progress(newImg);
+            Utils.progress(newImg, true);
 
             newImg.then(function (newImg) {
                 //Substitute the current "img" and preserve its position/size attributes

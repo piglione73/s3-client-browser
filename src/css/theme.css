@@ -25,6 +25,19 @@
     z-index: 200000;
 }
 
+.Progress-Modeless
+{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-position: center center;
+    background-image: url(../images/progress.gif);
+    background-repeat: no-repeat;
+    z-index: 200000;
+}
+
 .Popup .Contents
 {
     background-color: #fff;

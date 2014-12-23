@@ -338,10 +338,17 @@ var SCB = (function () {
 
     var templates = (function () {
 
-        var imageLoading = false;
+        var imageLoadingNormal = false;
+        var imageLoadingFast = false;
 
         function loadImagesTask() {
-            if (imageLoading)
+            //We have two tasks that load images in the background
+            loadImagesTaskNormal();     //Normal previews, tile-sized
+            loadImagesTaskFast();       //Fast-loading previews, lowest resolution
+        }
+
+        function loadImagesTaskNormal() {
+            if (imageLoadingNormal)
                 return;
 
             //Load first image that has not been loaded yet
@@ -350,32 +357,60 @@ var SCB = (function () {
                 var tileObject = tile.data("tileObject");
                 if (tileObject.isImage && !tileObject.cachedImage) {
                     //This tile contains an image that hasn't been loaded yet
-                    //Let's find the right preview and a low-res, fast-loading preview
-                    var keyFastLoading = Utils.findPreview(tileObject.key, tileObject.previews, 0);
+                    //Let's find the right preview
                     var key = Utils.findPreview(tileObject.key, tileObject.previews, w.filebrowser.tileWidth());
 
-                    //Let's load them now
-                    imageLoading = true;
+                    //Let's load now
+                    imageLoadingNormal = true;
 
-                    var imgFastLoading = Utils.loadImage(keyFastLoading);
                     var img = Utils.loadImage(key);
-
-                    //When the fast-loading image is loaded, we just update the tile, so we have a coarse-resolution tile immediately
-                    imgFastLoading.then(function (img) {
-                        tileObject.cachedImageFast = img;
-                        jpvs.applyTemplate(tile, image, { tileObject: tileObject });
-                    });
 
                     //When the regular preview is loaded, we update the tile and trigger the loadImagesTask to continue
                     img.then(function (img) {
-                        imageLoading = false;
+                        imageLoadingNormal = false;
 
                         //At the end, let's update the tile
                         tileObject.cachedImage = img;
                         jpvs.applyTemplate(tile, image, { tileObject: tileObject });
 
                         //Then continue loading as needed
-                        loadImagesTask();
+                        loadImagesTaskNormal();
+                    });
+
+                    //Exit from loop
+                    return false;
+                }
+            });
+        }
+
+        function loadImagesTaskFast() {
+            if (imageLoadingFast)
+                return;
+
+            //Load first image that has not been loaded yet
+            w.filebrowser.element.find(".Tile").each(function () {
+                var tile = $(this);
+                var tileObject = tile.data("tileObject");
+                if (tileObject.isImage && !tileObject.cachedImageFast) {
+                    //This tile contains an image that hasn't been loaded yet
+                    //Let's find a low-res, fast-loading preview
+                    var keyFastLoading = Utils.findPreview(tileObject.key, tileObject.previews, 0);
+
+                    //Let's load now
+                    imageLoadingFast = true;
+
+                    var imgFastLoading = Utils.loadImage(keyFastLoading);
+
+                    //When the fast-loading image is loaded, we just update the tile, so we have a coarse-resolution tile immediately
+                    imgFastLoading.then(function (img) {
+                        imageLoadingFast = false;
+
+                        //At the end, let's update the tile
+                        tileObject.cachedImageFast = img;
+                        jpvs.applyTemplate(tile, image, { tileObject: tileObject });
+
+                        //Then continue loading as needed
+                        loadImagesTaskFast();
                     });
 
                     //Exit from loop

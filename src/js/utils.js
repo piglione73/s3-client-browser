@@ -31,7 +31,7 @@ var Utils = (function () {
         }
     };
 
-    exports.progress = function (asyncValue) {
+    exports.progress = function (asyncValue, modeless) {
         //Keep the dimscreen until the given asyncValue is ready
         jpvs.showDimScreen(0, 100, template);
 
@@ -40,7 +40,7 @@ var Utils = (function () {
         });
 
         function template() {
-            this.removeClass("DimScreen").addClass("Progress");
+            this.removeClass("DimScreen").addClass(modeless ? "Progress-Modeless" : "Progress");
         }
     };
 
