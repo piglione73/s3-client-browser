@@ -14,7 +14,7 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "~2.1.1",
+    "jquery": "*",
     "aws-sdk": "https://sdk.amazonaws.com/js/aws-sdk-2.0.29.min.js",
     "async": "piglione73/async",
     "jpvs": "piglione73/jpvs"
